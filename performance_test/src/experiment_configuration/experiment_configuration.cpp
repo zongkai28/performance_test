@@ -119,9 +119,7 @@ void ExperimentConfiguration::setup(int argc, char ** argv)
     "use_single_participant",
     "**DEPRECATED** Uses only one participant per process. By default every thread has its own.")(
     "with_security", "Make nodes with deterministic names for use with security")(
-#ifdef PERFORMANCE_TEST_ZERO_COPY_ENABLED
     "zero_copy", "Use zero copy transfer")(
-#endif
     "roundtrip_mode",
     po::value<std::string>()->default_value("None"),
     "Selects the round trip mode (None, Main, Relay).")(
@@ -328,8 +326,6 @@ void ExperimentConfiguration::setup(int argc, char ** argv)
     }
 
     m_is_zero_copy_transfer = false;
-#ifdef PERFORMANCE_TEST_ZERO_COPY_ENABLED
-#ifdef PERFORMANCE_TEST_POLLING_SUBSCRIPTION_ENABLED
     if (vm.count("zero_copy")) {
       if (m_com_mean != CommunicationMean::ROS2PollingSubscription) {
         throw std::invalid_argument("Only ROS2PollingSubscription supports zero copy transfer!");
@@ -338,14 +334,8 @@ void ExperimentConfiguration::setup(int argc, char ** argv)
                 "Zero copy transfer only makes sense for interprocess communication!");
       } else {
         m_is_zero_copy_transfer = true;
-        if (m_msg_name.find("ZeroCopy") == std::string::npos) {
-          m_msg_name += "ZeroCopy";
-          std::cout << "Coercing message to the zero copy equivalent: " << m_msg_name << std::endl;
-        }
       }
     }
-#endif
-#endif
 
     m_roundtrip_mode = RoundTripMode::NONE;
     const auto mode = vm["roundtrip_mode"].as<std::string>();
