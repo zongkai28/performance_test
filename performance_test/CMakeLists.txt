@@ -146,13 +146,6 @@ if(PERFORMANCE_TEST_CYCLONEDDS_ENABLED)
   include_directories(${CYCLONEDDS_IDL_INCLUDE_DIR})
 endif()
 
-# ROS2 Callback and Executor
-option(PERFORMANCE_TEST_CALLBACK_EXECUTOR_ENABLED "Option to enable the Callback and Executor Plugin." ON)
-
-# Apex.OS Waitset and Polling Subscription
-option(PERFORMANCE_TEST_POLLING_SUBSCRIPTION_ENABLED "Option to enable Polling Subscription Plugin.
-  The plugin can only work if ApexOS is present, otherwise it will fail." OFF)
-
 # OpenDDS
 option(PERFORMANCE_TEST_OPENDDS_ENABLED "Require Open DDS to be available, fail otherwise" OFF)
 if(PERFORMANCE_TEST_OPENDDS_ENABLED)
@@ -161,6 +154,9 @@ if(PERFORMANCE_TEST_OPENDDS_ENABLED)
   add_subdirectory(src/idlgen/opendds)
   include_directories(${OPENDDS_IDL_INCLUDE_DIR} ${PARENT_DDS_ROOT_INCLUDE})
 endif()
+
+# ROS2 Callback and Executor
+option(PERFORMANCE_TEST_CALLBACK_EXECUTOR_ENABLED "Option to enable the Callback and Executor Plugin." ON)
 
 set(${PROJECT_NAME}_SOURCES
     src/experiment_execution/analyze_runner.cpp)
@@ -245,18 +241,7 @@ if(PERFORMANCE_TEST_CALLBACK_EXECUTOR_ENABLED)
   list(APPEND sources src/communication_abstractions/ros2_callback_communicator.hpp)
 endif()
 
-if(PERFORMANCE_TEST_POLLING_SUBSCRIPTION_ENABLED)
-  find_library(APEXCPP_LIB apexcpp)
-  if(NOT APEXCPP_LIB)
-    message(WARNING "ROS2PollingSubscription not found, only ROS 2 callbacks are available")
-  else()
-    message(INFO "ROS2PollingSubscription found")
-    add_definitions(-DPERFORMANCE_TEST_POLLING_SUBSCRIPTION_ENABLED)
-    list(APPEND sources src/communication_abstractions/ros2_waitset_communicator.hpp)
-  endif()
-endif()
-
-if(PERFORMANCE_TEST_CALLBACK_EXECUTOR_ENABLED OR PERFORMANCE_TEST_POLLING_SUBSCRIPTION_ENABLED)
+if(PERFORMANCE_TEST_CALLBACK_EXECUTOR_ENABLED)
   list(APPEND sources src/communication_abstractions/ros2_communicator.hpp)
 endif()
 

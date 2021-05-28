@@ -75,9 +75,13 @@ The performance_test tool is structured as a ROS 2 package, so `colcon` is used 
 Therefore, you must source a ROS 2 installation:
 
 ```bash
+<<<<<<< HEAD
 source /opt/ros/eloquent/setup.bash
 # or use Apex.OS in ade:
 source /opt/ApexOS/setup.bash
+=======
+source /opt/ros/foxy/setup.bash
+>>>>>>> 572dd55... Remove Apex.OS Polling Subscription plugin
 ```
 
 Select a middleware plugin from [this list](#middleware-plugins).
@@ -249,20 +253,6 @@ currently implemented:
     to use a different RMW implementation with ROS 2.
     - You can find a list of several other middleware options
       [here](https://docs.ros.org/en/ros2_documentation/eloquent/Concepts/DDS-and-ROS-middleware-implementations.html).
-  - Apex.OS is pre-configured to use Apex.Middleware.
-    - Apex.OS Cert does not support the ROS 2 Callback Executor. When building performance_test with
-      Apex.OS Cert, you must explicitly disable the ROS 2 Callback communicator by setting
-      `-DPERFORMANCE_TEST_CALLBACK_EXECUTOR_ENABLED=OFF`.
-- Default transports: depends on underlying DDS implementation
-
-#### Apex.OS Polling Subscription
-
-- [Apex.OS Polling Subscription with wait-set](https://apexai.pages.apex.ai/grand_central/docs/latest/using-read-and-take.html)
-- CMake build flag: `-DPERFORMANCE_TEST_POLLING_SUBSCRIPTION_ENABLED=ON`
-- Communication plugin: `-c ROS2PollingSubscription`
-- Zero copy transport (`--zero-copy`): yes
-- Docker file: Not available
-- Default transports: depends on underlying DDS implementation
 
 ## Analyze the results
 

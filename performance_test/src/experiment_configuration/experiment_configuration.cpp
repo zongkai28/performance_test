@@ -99,9 +99,6 @@ void ExperimentConfiguration::setup(int argc, char ** argv)
 #ifdef PERFORMANCE_TEST_CALLBACK_EXECUTOR_ENABLED
     allowedCommunications.push_back("ROS2");
 #endif
-#ifdef PERFORMANCE_TEST_POLLING_SUBSCRIPTION_ENABLED
-    allowedCommunications.push_back("ROS2PollingSubscription");
-#endif
 #ifdef PERFORMANCE_TEST_FASTRTPS_ENABLED
     allowedCommunications.push_back("FastRTPS");
 #endif
@@ -280,14 +277,6 @@ void ExperimentConfiguration::setup(int argc, char ** argv)
       m_com_mean_str = "ROS2";
       #endif
     }
-#ifdef PERFORMANCE_TEST_POLLING_SUBSCRIPTION_ENABLED
-    if (comm_str == "ROS2PollingSubscription") {
-      m_com_mean = CommunicationMean::ROS2PollingSubscription;
-      #ifdef PERFORMANCE_TEST_ODB_FOR_SQL_ENABLED
-      m_com_mean_str = "ROS2PollingSubscription";
-      #endif
-    }
-#endif
 #ifdef PERFORMANCE_TEST_FASTRTPS_ENABLED
     if (comm_str == "FastRTPS") {
       m_com_mean = CommunicationMean::FASTRTPS;
@@ -438,11 +427,6 @@ bool ExperimentConfiguration::use_ros2_layers() const
 {
 #ifdef PERFORMANCE_TEST_CALLBACK_EXECUTOR_ENABLED
   if (com_mean() == CommunicationMean::ROS2) {
-    return true;
-  }
-#endif
-#ifdef PERFORMANCE_TEST_POLLING_SUBSCRIPTION_ENABLED
-  if (com_mean() == CommunicationMean::ROS2PollingSubscription) {
     return true;
   }
 #endif
