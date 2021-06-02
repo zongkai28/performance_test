@@ -239,7 +239,7 @@ currently implemented:
 - [ROS 2 `rclcpp::publisher` and `rclcpp::subscriber`](https://docs.ros.org/en/dashing/Tutorials/Writing-A-Simple-Cpp-Publisher-And-Subscriber.html)
 - CMake build flag: `-DPERFORMANCE_TEST_CALLBACK_EXECUTOR_ENABLED=ON` (on by default)
 - Communication plugin: `-c ROS2`
-- Zero copy transport (`--zero-copy`): no
+- Zero copy transport (`--zero-copy`): yes
 - Docker file: [Dockerfile.ROS2](dockerfiles/Dockerfile.ROS2)
 - This plugin will use the ROS 2 RMW implementation that is configured on your system.
   - ROS 2 Dashing is pre-configured to use rmw_fastrtps_cpp.
