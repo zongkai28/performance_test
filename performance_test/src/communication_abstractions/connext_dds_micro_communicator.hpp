@@ -331,20 +331,6 @@ private:
     }
   }
 
-  /**
-  * \brief Initializes the PointField array name field in data header for zero copy transfer.
-  * This is the overloaded helper method which is called from init_data() if data has
-  * PointField array in the payload
-  * \param data The data to publish.
-  */
-  template<typename T>
-  static auto init_fields(T & data)->decltype (data.fields_[0].name_zc_, void ()) {
-    auto fields_size = size(data.fields_);
-    for (uint8_t i = 0; i < fields_size; i++) {
-      snprintf(data.fields_[i].name_zc_, 5U, "name");
-    }
-  }
-
   /// Do nothing if PointField not present
   static void init_fields(...) {}
 

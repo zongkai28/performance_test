@@ -62,7 +62,6 @@ std::ostream & operator<<(std::ostream & stream, const ExperimentConfiguration &
            "\nMemory check enabled: " << e.check_memory() <<
            "\nUse single participant: " << e.use_single_participant() <<
            "\nWith security: " << e.is_with_security() <<
-           "\nZero copy transfer: " << e.is_zero_copy_transfer() <<
            "\nRoundtrip Mode: " << e.roundtrip_mode() <<
            "\nIgnore seconds from beginning: " << e.rows_to_ignore();
   } else {
@@ -197,9 +196,6 @@ void ExperimentConfiguration::setup(int argc, char ** argv)
     TCLAP::ValueArg<uint32_t> waitForMatchedTimeoutArg("", "wait_for_matched_timeout",
       "Maximum time in seconds to wait for matched pubs/subs.", false, 30, "N", cmd);
 
-    TCLAP::SwitchArg zeroCopyArg("", "zero_copy",
-      "Use zero copy transfer.", cmd, false);
-
 #ifdef PERFORMANCE_TEST_ODB_FOR_SQL_ENABLED
     TCLAP::ValueArg<std::string> dbNameArg("", "db_name",
       "Name of the SQL database.", false, "db_name", "db", cmd);
@@ -246,7 +242,6 @@ void ExperimentConfiguration::setup(int argc, char ** argv)
     m_expected_num_pubs = expectedNumPubsArg.getValue();
     m_expected_num_subs = expectedNumSubsArg.getValue();
     m_wait_for_matched_timeout = waitForMatchedTimeoutArg.getValue();
-    m_is_zero_copy_transfer = zeroCopyArg.getValue();
 #ifdef PERFORMANCE_TEST_ODB_FOR_SQL_ENABLED
     m_db_name = dbNameArg.getValue();
 #if defined DATABASE_MYSQL || defined DATABASE_PGSQL
@@ -366,13 +361,6 @@ void ExperimentConfiguration::setup(int argc, char ** argv)
     if (m_with_security) {
       if (m_com_mean != CommunicationMean::ROS2) {
         throw std::invalid_argument("Only ROS2 supports security!");
-      }
-    }
-
-    if (m_is_zero_copy_transfer) {
-      if (m_number_of_publishers > 0 && m_number_of_subscribers > 0) {
-        throw std::invalid_argument(
-                "Zero copy transfer only makes sense for interprocess communication!");
       }
     }
 
@@ -546,12 +534,6 @@ bool ExperimentConfiguration::is_with_security() const
 {
   check_setup();
   return m_with_security;
-}
-
-bool ExperimentConfiguration::is_zero_copy_transfer() const
-{
-  check_setup();
-  return m_is_zero_copy_transfer;
 }
 
 bool ExperimentConfiguration::disable_logging() const

@@ -113,26 +113,13 @@ public:
       m_publisher = m_node->create_publisher<DataType>(
         m_ec.topic_name() + m_ec.pub_topic_postfix(), ros2QOSAdapter);
     }
-    if (m_ec.is_zero_copy_transfer()) {
-      if (!m_publisher->can_loan_messages()) {
-        throw std::runtime_error("RMW implementation does not support zero copy!");
-      }
-      auto borrowed_message{m_publisher->borrow_loaned_message()};
-      lock();
-      borrowed_message.get().time = time;
-      borrowed_message.get().id = next_sample_id();
-      increment_sent();  // We increment before publishing so we don't have to lock twice.
-      unlock();
-      m_publisher->publish(std::move(borrowed_message));
-    } else {
-      DataType data;
-      lock();
-      data.time = time;
-      data.id = next_sample_id();
-      increment_sent();  // We increment before publishing so we don't have to lock twice.
-      unlock();
-      m_publisher->publish(data);
-    }
+    DataType data;
+    lock();
+    data.time = time;
+    data.id = next_sample_id();
+    increment_sent();  // We increment before publishing so we don't have to lock twice.
+    unlock();
+    m_publisher->publish(data);
   }
 
   /// Reads received data from ROS 2 using callbacks
