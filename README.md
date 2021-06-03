@@ -127,10 +127,6 @@ For running tests on a single machine, you can choose between the following opti
        subscriber processes.
     1. Latency is only logged for the subscriber process, because it is calculated after the
        sample is received.
-    1. Some plugins also support zero copy transfer. With zero copy transfer, the publisher
-       requests a loan from a pre-allocated shared memory pool, where it writes the sample. The
-       subscriber reads the sample from that same location. When running, use the `--zero_copy`
-       argument for both the publisher and subscriber processes.
     1. :memo: The transport is dependent on the middleware
 
 On a distributed system, testing latency is difficult, because the clocks are probably not
@@ -165,7 +161,6 @@ implemented:
 - [Eclipse Cyclone DDS 0.8.0beta4](https://github.com/eclipse-cyclonedds/cyclonedds/tree/0.8.0beta4)
 - CMake build flag: `-DPERFORMANCE_TEST_CYCLONEDDS_ENABLED=ON`
 - Communication plugin: `-c CycloneDDS`
-- Zero copy transport (`--zero-copy`): no
 - Docker file: [Dockerfile.CycloneDDS](dockerfiles/Dockerfile.CycloneDDS)
 - Default transports:
   | INTRA | IPC on same machine | Distributed system |
@@ -177,7 +172,6 @@ implemented:
 - [FastDDS 2.0.x](https://github.com/eProsima/Fast-RTPS/tree/2.0.x)
 - CMake build flag: `-DPERFORMANCE_TEST_FASTRTPS_ENABLED=ON`
 - Communication plugin: `-c FastRTPS`
-- Zero copy transport (`--zero-copy`): no
 - Docker file: [Dockerfile.FastDDS](dockerfiles/Dockerfile.FastDDS)
 - Default transports:
   | INTRA | IPC on same machine | Distributed system |
@@ -189,7 +183,6 @@ implemented:
 - [OpenDDS 3.13.2](https://github.com/objectcomputing/OpenDDS/tree/DDS-3.13.2)
 - CMake build flag: `-DPERFORMANCE_TEST_FASTRTPS_ENABLED=ON`
 - Communication plugin: `-c OpenDDS`
-- Zero copy transport (`--zero-copy`): no
 - Docker file: [Dockerfile.OpenDDS](dockerfiles/Dockerfile.OpenDDS)
 - Default transports:
   | INTRA | IPC on same machine | Distributed system |
@@ -201,7 +194,6 @@ implemented:
 - [RTI Connext DDS 5.3.1+](https://www.rti.com/products/connext-dds-professional)
 - CMake build flag: `-DPERFORMANCE_TEST_CONNEXTDDS_ENABLED=ON`
 - Communication plugin: `-c ConnextDDS`
-- Zero copy transport (`--zero-copy`): no
 - Docker file: Not available
 - A license is required
 - You need to source an RTI Connext DDS environment.
@@ -220,7 +212,6 @@ implemented:
 - [Connext DDS Micro 3.0.3](https://www.rti.com/products/connext-dds-micro)
 - CMake build flag: `-DPERFORMANCE_TEST_CONNEXTDDSMICRO_ENABLED=ON`
 - Communication plugin: `-c ConnextDDSMicro`
-- Zero copy transport (`--zero-copy`): no
 - Docker file: Not available
 - A license is required
 - Default transports:
@@ -239,7 +230,6 @@ currently implemented:
 - [ROS 2 `rclcpp::publisher` and `rclcpp::subscriber`](https://docs.ros.org/en/eloquent/Tutorials/Writing-A-Simple-Cpp-Publisher-And-Subscriber.html)
 - CMake build flag: `-DPERFORMANCE_TEST_CALLBACK_EXECUTOR_ENABLED=ON` (on by default)
 - Communication plugin: `-c ROS2`
-- Zero copy transport (`--zero-copy`): yes
 - Docker file: [Dockerfile.ROS2](dockerfiles/Dockerfile.ROS2)
 - This plugin will use the ROS 2 RMW implementation that is configured on your system.
   - ROS 2 Eloquent is pre-configured to use rmw_fastrtps_cpp.

@@ -2,7 +2,6 @@
   <changeset version="11">
     <alter-table name="ExperimentConfiguration">
       <add-column name="msg_name" type="TEXT" null="false"/>
-      <add-column name="is_zero_copy_transfer" type="TINYINT(1)" null="false"/>
     </alter-table>
   </changeset>
 
