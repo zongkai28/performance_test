@@ -2,27 +2,7 @@
 <policy version="0.1.0"
   xmlns:xi="http://www.w3.org/2001/XInclude">
   <profiles>
-    <profile ns="/" node="performance_test0">
-      <xi:include href="common_policies.xml"
-        xpointer="xpointer(/profile/*)"/>
-    </profile>
-    <profile ns="/" node="performance_test1">
-      <xi:include href="common_policies.xml"
-        xpointer="xpointer(/profile/*)"/>
-    </profile>
-    <profile ns="/" node="performance_test2">
-      <xi:include href="common_policies.xml"
-        xpointer="xpointer(/profile/*)"/>
-    </profile>
-    <profile ns="/" node="performance_test3">
-      <xi:include href="common_policies.xml"
-        xpointer="xpointer(/profile/*)"/>
-    </profile>
-    <profile ns="/" node="performance_test4">
-      <xi:include href="common_policies.xml"
-        xpointer="xpointer(/profile/*)"/>
-    </profile>
-    <profile ns="/" node="performance_test5">
+    <profile ns="/" node="performance_test*">
       <xi:include href="common_policies.xml"
         xpointer="xpointer(/profile/*)"/>
     </profile>
