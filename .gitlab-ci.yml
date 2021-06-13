@@ -218,14 +218,11 @@ smoke_test_opendds:
         tar xzf opt-opendds.tar.gz -C /;
     '
 
-.test_security:
+test_security:
   stage: test
   image: osrf/ros:eloquent-desktop
   needs:
     - build_fastrtps
-  before_script:
-    - apt-get update
-    - apt-get install -y ros-eloquent-osrf-testing-tools-cpp
   script:
     - tar xzf opt.tar.gz -C /
     - source /opt/performance_test/setup.bash
@@ -236,7 +233,8 @@ smoke_test_opendds:
     # Unexpected node names:
     - '! ros2 run performance_test perf_test -c ROS2 --msg Array1k -t Array1k --max_runtime 10 --rate 2 --keep_last --history_depth 10'
     # Unexpected msg types
-    - '! ros2 run performance_test perf_test -c ROS2 --msg Struct16 -t test_topic --max_runtime 10 --rate 2 --keep_last --history_depth 10 --with_security'
+    # TODO(LanderU): Enable this when https://gitlab.com/ApexAI/performance_test/-/issues/121 is resolved
+    # - '! ros2 run performance_test perf_test -c ROS2 --msg Struct16 -t test_topic --max_runtime 10 --rate 2 --keep_last --history_depth 10 --with_security'
     # This should pass (time-out)
     - 'timeout 30 ros2 run performance_test perf_test -c ROS2 --msg Array1k -t Array1k --rate 2 --keep_last --history_depth 10 --with_security ||
        if [ $? -eq 124 ]; then echo "OK";
