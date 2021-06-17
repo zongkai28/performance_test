@@ -25,7 +25,7 @@ build_cyclonedds:
   image: osrf/ros:dashing-desktop
   script:
     - source /opt/ros/dashing/setup.bash
-    - rosdep update
+    - rosdep update --include-eol-distros
     - apt-get update
     - rosdep install --from performance_test --ignore-src -y
     - apt-get install -y bison maven python3-pip
