@@ -158,7 +158,7 @@ implemented:
 
 #### Eclipse Cyclone DDS
 
-- [Eclipse Cyclone DDS 0.8.0beta4](https://github.com/eclipse-cyclonedds/cyclonedds/tree/0.8.0beta4)
+- [Eclipse Cyclone DDS 0.8.0beta6](https://github.com/eclipse-cyclonedds/cyclonedds/tree/0.8.0beta6)
 - CMake build flag: `-DPERFORMANCE_TEST_CYCLONEDDS_ENABLED=ON`
 - Communication plugin: `-c CycloneDDS`
 - Docker file: [Dockerfile.CycloneDDS](dockerfiles/Dockerfile.CycloneDDS)
