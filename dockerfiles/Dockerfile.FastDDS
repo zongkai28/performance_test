@@ -2,7 +2,7 @@
 # docker run -it performance_test_fast_dds bash
 # /opt/performance_test/lib/performance_test/perf_test -c FastRTPS --msg Array1k
 
-FROM osrf/ros:foxy-desktop
+FROM osrf/ros:dashing-desktop
 
 SHELL ["/bin/bash", "-c"]
 
@@ -13,7 +13,7 @@ RUN mkdir -p /perf_test_ws/src
 
 ADD . /perf_test_ws/src/performance_test
 
-RUN source /opt/ros/foxy/setup.bash && \
+RUN source /opt/ros/dashing/setup.bash && \
     cd /perf_test_ws && \
     colcon build \
       --install-base /opt/performance_test \
@@ -23,5 +23,5 @@ RUN source /opt/ros/foxy/setup.bash && \
         -DCMAKE_BUILD_TYPE=Release \
         -DPERFORMANCE_TEST_FASTRTPS_ENABLED=ON
 
-RUN echo "source /opt/ros/foxy/setup.bash" >> /root/.bashrc
+RUN echo "source /opt/ros/dashing/setup.bash" >> /root/.bashrc
 RUN echo "source /opt/performance_test/setup.bash" >> /root/.bashrc
