@@ -30,7 +30,7 @@ build_cyclonedds:
     - rosdep install --from performance_test --ignore-src -y
     - apt-get install -y bison maven python3-pip
     - pip3 install -U colcon-common-extensions pytest
-    - git clone https://github.com/eclipse-cyclonedds/cyclonedds.git -b 0.8.0beta1 --depth 1
+    - git clone https://github.com/eclipse-cyclonedds/cyclonedds.git -b 0.8.0beta6 --depth 1
     - cd cyclonedds
     - mkdir -p build
     - cd build
