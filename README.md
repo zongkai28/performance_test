@@ -184,7 +184,7 @@ implemented:
 #### OCI OpenDDS
 
 - [OpenDDS 3.13.2](https://github.com/objectcomputing/OpenDDS/tree/DDS-3.13.2)
-- CMake build flag: `-DPERFORMANCE_TEST_FASTRTPS_ENABLED=ON`
+- CMake build flag: `-DPERFORMANCE_TEST_OPENDDS_ENABLED=ON`
 - Communication plugin: `-c OpenDDS`
 - Docker file: [Dockerfile.OpenDDS](dockerfiles/Dockerfile.OpenDDS)
 - Default transports:
@@ -241,6 +241,7 @@ currently implemented:
     to use a different RMW implementation with ROS 2.
     - You can find a list of several other middleware options
       [here](https://docs.ros.org/en/ros2_documentation/dashing/Installation/DDS-Implementations.html).
+- Default transports: depends on underlying RMW implementation
 
 ## Analyze the results
 
