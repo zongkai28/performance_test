@@ -233,11 +233,11 @@ test_plotter:
     - source security_setup.bash enable ./demo_keys
     # The below runs should fail:
     # Unexpected node names:
-    - '! ros2 run performance_test perf_test -c ROS2 --msg Array1k -t Array1k --max-runtime 10 --rate 2 --keep-last --history-depth 10'
+    - '! ros2 run performance_test perf_test -c rclcpp-single-threaded-executor --msg Array1k -t Array1k --max-runtime 10 --rate 2 --keep-last --history-depth 10'
     # Unexpected msg types
-    - '! ros2 run performance_test perf_test -c ROS2 --msg Struct16 -t test_topic --max-runtime 10 --rate 2 --keep-last --history-depth 10 --with-security'
+    - '! ros2 run performance_test perf_test -c rclcpp-single-threaded-executor --msg Struct16 -t test_topic --max-runtime 10 --rate 2 --keep-last --history-depth 10 --with-security'
     # This should pass (time-out)
-    - 'timeout 30 ros2 run performance_test perf_test -c ROS2 --msg Array1k -t Array1k --rate 2 --keep-last --history-depth 10 --with-security ||
+    - 'timeout 30 ros2 run performance_test perf_test -c rclcpp-single-threaded-executor --msg Array1k -t Array1k --rate 2 --keep-last --history-depth 10 --with-security ||
        if [ $? -eq 124 ]; then echo "OK";
        else exit 1;
        fi

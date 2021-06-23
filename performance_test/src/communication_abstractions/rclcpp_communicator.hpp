@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef COMMUNICATION_ABSTRACTIONS__ROS2_CALLBACK_COMMUNICATOR_HPP_
-#define COMMUNICATION_ABSTRACTIONS__ROS2_CALLBACK_COMMUNICATOR_HPP_
+#ifndef COMMUNICATION_ABSTRACTIONS__RCLCPP_COMMUNICATOR_HPP_
+#define COMMUNICATION_ABSTRACTIONS__RCLCPP_COMMUNICATOR_HPP_
 
 
 #include <rclcpp/rclcpp.hpp>
@@ -79,23 +79,18 @@ private:
 
 /// Communication plugin interface for ROS 2 for the subscription side.
 template<class Msg>
-class ROS2CallbackCommunicator : public Communicator
+class RclcppCommunicator : public Communicator
 {
 public:
   /// The data type to publish and subscribe to.
   using DataType = typename Msg::RosType;
 
   /// Constructor which takes a reference \param lock to the lock to use.
-  explicit ROS2CallbackCommunicator(SpinLock & lock)
+  explicit RclcppCommunicator(SpinLock & lock)
   : Communicator(lock),
-    m_subscription(nullptr),
-    m_publisher(nullptr),
-    m_data_copy(std::make_unique<DataType>()),
-    m_node(ResourceManager::get().ros2_node()),
-    m_ROS2QOSAdapter(ROS2QOSAdapter(m_ec.qos()).get())
-  {
-    m_executor.add_node(this->m_node);
-  }
+    m_node(ResourceManager::get().rclcpp_node()),
+    m_ROS2QOSAdapter(ROS2QOSAdapter(m_ec.qos()).get()),
+    m_data_copy(std::make_unique<DataType>()) {}
 
   /**
    * \brief Publishes the provided data.
@@ -123,17 +118,7 @@ public:
   }
 
   /// Reads received data from ROS 2 using callbacks
-  void update_subscription()
-  {
-    if (!m_subscription) {
-      m_subscription = this->m_node->template create_subscription<DataType>(
-        this->m_ec.topic_name() + this->m_ec.sub_topic_postfix(), this->m_ROS2QOSAdapter,
-        [this](const typename DataType::SharedPtr data) {this->callback(data);});
-    }
-    this->lock();
-    m_executor.spin_once(std::chrono::milliseconds(100));
-    this->unlock();
-  }
+  virtual void update_subscription() = 0;
 
   /// Returns the accumulated data size in bytes.
   std::size_t data_received()
@@ -141,14 +126,9 @@ public:
     return num_received_samples() * sizeof(DataType);
   }
 
-private:
-  std::shared_ptr<::rclcpp::Subscription<DataType>> m_subscription;
-  std::shared_ptr<::rclcpp::Publisher<DataType>> m_publisher;
-  std::unique_ptr<DataType> m_data_copy;
+protected:
   std::shared_ptr<rclcpp::Node> m_node;
   rclcpp::QoS m_ROS2QOSAdapter;
-  rclcpp::executors::SingleThreadedExecutor m_executor;
-
   /**
    * \brief Callback handler which handles the received data.
    *
@@ -186,6 +166,10 @@ private:
     }
     increment_received();
   }
+
+private:
+  std::shared_ptr<::rclcpp::Publisher<DataType>> m_publisher;
+  std::unique_ptr<DataType> m_data_copy;
 };
 }  // namespace performance_test
-#endif  // COMMUNICATION_ABSTRACTIONS__ROS2_CALLBACK_COMMUNICATOR_HPP_
+#endif  // COMMUNICATION_ABSTRACTIONS__RCLCPP_COMMUNICATOR_HPP_
