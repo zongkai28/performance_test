@@ -60,7 +60,7 @@ mkdir experiment
                                                           --msg Array1k
                                                           --rate 100
                                                           --topic test_topic
-                                                          --max_runtime 30
+                                                          --max-runtime 30
                                                           --logfile experiment/log
 ```
 
@@ -104,7 +104,7 @@ To find the available settings, run with `--help` (note the required and default
 - The `-c` argument should match the selected [middleware plugin](#middleware-plugins)
   from the build phase.
 - The `--msg` argument should be one of the supported message types, which can be listed
-  by running with `--msg_list`.
+  by running with `--msg-list`.
 
 ### Single machine or distributed system?
 
@@ -119,9 +119,9 @@ For running tests on a single machine, you can choose between the following opti
    interprocess communication, two instances of the performance_test must be run, e.g.
 
     ```bash
-    perf_test <options> --num_sub_threads 1 --num_pub_threads 0 &
+    perf_test <options> --num-sub-threads 1 --num-pub-threads 0 &
     sleep 1  # give the subscriber time to finish initializing
-    perf_test <options> --num_sub_threads 0 --num_pub_threads 1
+    perf_test <options> --num-sub-threads 0 --num-pub-threads 1
     ```
 
     1. :point_up: CPU and Resident Memory measurements are logged separately for the publisher and
@@ -138,10 +138,10 @@ supports relay mode, which allows for a round-trip style of communication:
 
 ```bash
 # On the main machine
-perf_test <options> --roundtrip_mode Main
+perf_test <options> --roundtrip-mode Main
 
 # On the relay machine:
-perf_test <options> --roundtrip_mode Relay
+perf_test <options> --roundtrip-mode Relay
 ```
 
 In relay mode, the Main machine sends messages to the Relay machine, which immediately sends the
@@ -341,7 +341,7 @@ describes how to design a fair and unbiased performance test, and is the basis f
 - Using Connext DDS Micro INTRA transport with `reliable` QoS and history kind set to `keep_all`
   [is not supported with Connext
   Micro](https://community.rti.com/static/documentation/connext-micro/3.0.3/doc/html/usersmanual/transports/INTRA.html#reliability-and-durability).
-  Set `keep_last` as QoS history kind always when using `reliable`.
+  Set `keep-last` as QoS history kind always when using `reliable`.
 
 Possible additional communication which could be implemented are:
 
