@@ -25,8 +25,8 @@ build_cyclonedds:
   image: osrf/ros:dashing-desktop
   script:
     - source /opt/ros/dashing/setup.bash
-    - rosdep update
     - apt-get update
+    - rosdep update --include-eol-distros
     - rosdep install --from performance_test --ignore-src -y
     - apt-get install -y python3-pip
     - pip3 install -U colcon-common-extensions pytest
