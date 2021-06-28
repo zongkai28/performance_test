@@ -343,7 +343,7 @@ execute_process(
 add_definitions(-DPERFORMANCE_TEST_VERSION="${PERF_TEST_VERSION}")
 
 if(APEX_CERT)
-  set(TYPESUPPORT_INTERFACE rosidl_typesupport_apex_dds_cpp)
+  set(TYPESUPPORT_INTERFACE rosidl_typesupport_cyclone_dds_cpp)
 else()
   set(TYPESUPPORT_INTERFACE rosidl_typesupport_cpp)
 endif()
