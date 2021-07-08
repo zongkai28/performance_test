@@ -412,8 +412,7 @@ CommunicationMean ExperimentConfiguration::com_mean() const
 bool ExperimentConfiguration::use_ros2_layers() const
 {
 #ifdef PERFORMANCE_TEST_RCLCPP_ENABLED
-  if (m_com_mean == CommunicationMean::RCLCPP_SINGLE_THREADED_EXECUTOR)
-  {
+  if (m_com_mean == CommunicationMean::RCLCPP_SINGLE_THREADED_EXECUTOR) {
     return true;
   }
 #endif

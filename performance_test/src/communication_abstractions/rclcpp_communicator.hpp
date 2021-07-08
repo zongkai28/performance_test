@@ -156,15 +156,15 @@ protected:
     }
 
     if (m_ec.roundtrip_mode() == ExperimentConfiguration::RoundTripMode::RELAY) {
-      unlock();
       publish(data.time);
-      lock();
     } else {
+      lock();
       m_prev_timestamp = data.time;
       update_lost_samples_counter(data.id);
       add_latency_to_statistics(data.time);
+      increment_received();
+      unlock();
     }
-    increment_received();
   }
 
 private:

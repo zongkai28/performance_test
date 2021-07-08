@@ -16,6 +16,27 @@ build_cross_image:
           sh -c "colcon build --merge-install --cmake-args -DCMAKE_TOOLCHAIN_FILE=`pwd`/tools/toolchain.cmake -DBUILD_TESTING=OFF"
       '
 
+build_rclcpp:
+  stage: build
+  image: osrf/ros:dashing-desktop
+  script:
+    - '
+      colcon build
+          --install-base /opt/performance_test
+          --merge-install
+          --cmake-args
+            -DCMAKE_BUILD_TYPE=Release
+      '
+    - cp LICENSE /opt/performance_test
+    - tar cfz opt.tar.gz /opt/performance_test
+  artifacts:
+    expire_in: 1 day
+    when: always
+    paths:
+      - log
+      - build
+      - opt.tar.gz
+
 build_cyclonedds:
   stage: build
   image: osrf/ros:dashing-desktop
@@ -42,6 +63,7 @@ build_cyclonedds:
           --cmake-args
             -DCMAKE_BUILD_TYPE=Release
             -DPERFORMANCE_TEST_CYCLONEDDS_ENABLED=ON
+            -DPERFORMANCE_TEST_RCLCPP_ENABLED=OFF
           --base-path performance_test
       '
     - cp LICENSE /opt/performance_test
@@ -78,6 +100,7 @@ build_opendds:
           --cmake-args
             -DCMAKE_BUILD_TYPE=Release
             -DPERFORMANCE_TEST_OPENDDS_ENABLED=ON
+            -DPERFORMANCE_TEST_RCLCPP_ENABLED=OFF
           --base-path performance_test
       '
     - cp LICENSE /opt/performance_test
@@ -106,6 +129,7 @@ build_fastrtps:
           --cmake-args
             -DCMAKE_BUILD_TYPE=Release
             -DPERFORMANCE_TEST_FASTRTPS_ENABLED=ON
+            -DPERFORMANCE_TEST_RCLCPP_ENABLED=OFF
       '
     - cp LICENSE /opt/performance_test
     - tar cfz opt.tar.gz /opt/performance_test
@@ -135,7 +159,7 @@ test:
   stage: test
   image: osrf/ros:dashing-desktop
   needs:
-    - build_cyclonedds
+    - build_rclcpp
   script:
     - tar xf opt.tar.gz -C /
     - '
@@ -174,6 +198,14 @@ test:
             --max-runtime 15;
       done;
       '
+
+smoke_test_rclcpp_ste:
+  extends:
+    - .smoke_test
+  needs:
+    - build_rclcpp
+  variables:
+    COMMUNICATION_MEAN: rclcpp-single-threaded-executor
 
 smoke_test_fastrtps:
   extends:
@@ -221,7 +253,7 @@ test_security_fast_dds:
   stage: test
   image: osrf/ros:dashing-desktop
   needs:
-    - build_fastrtps
+    - build_rclcpp
   script:
     - apt-get update
     - rosdep update --include-eol-distros
@@ -249,7 +281,7 @@ volume:
   services:
     - docker:dind
   needs:
-    - build_cyclonedds
+    - build_rclcpp
   before_script:
     - ''
   script:
