@@ -24,17 +24,6 @@ set(OPTIONAL_LIBRARIES)
 
 # Default to C++14
 set(CMAKE_CXX_STANDARD 14)
-if(BOOST_INCLUDEDIR)
-  set(Boost_INCLUDE_DIR  ${BOOST_INCLUDEDIR})
-endif()
-if(BOOST_LIBRARYDIR)
-  set(Boost_LIBRARY_DIR ${BOOST_LIBRARYDIR})
-  set(Boost_LIBRARIES ${BOOST_LIBRARYDIR})
-endif()
-find_package(Boost COMPONENTS program_options timer REQUIRED)
-if(Boost_FOUND AND BOOST_INCLUDEDIR)
-  include_directories(${Boost_INCLUDE_DIRS})
-endif()
 find_package(ament_cmake REQUIRED)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -365,9 +354,24 @@ externalproject_add(
 )
 include_directories(SYSTEM ${EXTERNAL_INSTALL_LOCATION}/tabulate/include)
 
+externalproject_add(
+  sole
+  GIT_REPOSITORY https://github.com/r-lyeh-archived/sole.git
+  GIT_TAG 1.0.2
+  GIT_SHALLOW TRUE
+  PREFIX ${EXTERNAL_INSTALL_LOCATION}
+  SOURCE_DIR ${EXTERNAL_INSTALL_LOCATION}/sole
+  CMAKE_COMMAND ""
+  CONFIGURE_COMMAND ""
+  UPDATE_COMMAND ""
+  INSTALL_COMMAND ""
+  BUILD_COMMAND ""
+)
+include_directories(SYSTEM ${EXTERNAL_INSTALL_LOCATION})
+
 set(EXE_NAME perf_test)
 add_executable(${EXE_NAME} ${${PROJECT_NAME}_SOURCES} ${sources} ${${PROJECT_NAME}_HEADERS})
-add_dependencies(${EXE_NAME} tclap rapidjson tabulate)
+add_dependencies(${EXE_NAME} tclap rapidjson tabulate sole)
 
 set_compile_options(${EXE_NAME})
 
@@ -406,7 +410,6 @@ if(TARGET rti_connextdds_idl)
 endif()
 
 target_link_libraries(${EXE_NAME}
-    ${Boost_LIBRARIES}
     ${OPTIONAL_LIBRARIES}
 )
 
