@@ -56,6 +56,8 @@ public:
           this->m_ec.expected_wait_for_matched_timeout());
       }
       m_waitset = std::make_unique<rclcpp::Waitset<>>(m_polling_subscription);
+      this->m_event_logger.register_sub(
+        this->m_sub_id, this->m_ec.msg_name(), this->m_ec.topic_name());
     }
     const auto wait_ret = m_waitset->wait(std::chrono::milliseconds(100), false);
     if (wait_ret.any()) {

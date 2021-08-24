@@ -236,6 +236,7 @@ public:
       if (m_typed_datareader == nullptr) {
         throw std::runtime_error("m_typed_datareader == nullptr");
       }
+      m_event_logger.register_sub(m_sub_id, m_ec.msg_name(), m_ec.topic_name());
     }
 
     DDS::Duration_t wait_timeout = {15, 0};

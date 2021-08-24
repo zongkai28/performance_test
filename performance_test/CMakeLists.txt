@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.11)
 project(performance_test)
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}")
@@ -235,6 +235,8 @@ set(sources
     src/outputs/stdout_output.cpp
     src/outputs/csv_output.cpp
     src/outputs/json_output.cpp
+    src/events/event_db.hpp
+    src/events/event_db.cpp
     src/experiment_configuration/topics.hpp
     src/data_running/data_runner.hpp
     src/data_running/data_runner_base.hpp
@@ -249,6 +251,7 @@ set(sources
     src/experiment_configuration/experiment_configuration.cpp
     src/experiment_configuration/external_info_storage.hpp
     src/experiment_configuration/external_info_storage.cpp
+    src/utilities/cpu_info.hpp
     src/utilities/spin_lock.hpp
     src/utilities/statistics_tracker.hpp
     src/utilities/cpu_usage_tracker.hpp
@@ -369,9 +372,24 @@ externalproject_add(
 )
 include_directories(SYSTEM ${EXTERNAL_INSTALL_LOCATION})
 
+include(FetchContent)
+
+fetchcontent_declare(
+  sqlite3
+  GIT_REPOSITORY https://github.com/azadkuh/sqlite-amalgamation.git
+  GIT_TAG 3.36.0
+  GIT_SHALLOW TRUE
+)
+
+if(NOT sqlite3_POPULATED)
+  fetchcontent_populate(sqlite3)
+  add_subdirectory(${sqlite3_SOURCE_DIR} ${sqlite3_BINARY_DIR})
+endif()
+
 set(EXE_NAME perf_test)
 add_executable(${EXE_NAME} ${${PROJECT_NAME}_SOURCES} ${sources} ${${PROJECT_NAME}_HEADERS})
 add_dependencies(${EXE_NAME} tclap rapidjson tabulate sole)
+target_link_libraries(${EXE_NAME} SQLite3)
 
 set_compile_options(${EXE_NAME})
 

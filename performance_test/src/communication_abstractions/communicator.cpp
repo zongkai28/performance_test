@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <sole/sole.hpp>
+
 #include <chrono>
 
 #include "communicator.hpp"
@@ -28,6 +30,9 @@ namespace performance_test
 Communicator::Communicator(SpinLock & lock)
 : m_ec(ExperimentConfiguration::get()),
   m_prev_timestamp(),
+  m_event_logger(sole::uuid4().str() + ".db"),
+  m_pub_id(sole::uuid4().str()),
+  m_sub_id(sole::uuid4().str()),
   m_prev_sample_id(),
   m_num_lost_samples(),
   m_received_sample_counter(),

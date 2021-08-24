@@ -241,6 +241,7 @@ public:
       if (dds_waitset_attach(m_waitset, m_datareader, 1) < 0) {
         throw std::runtime_error("failed to attach waitset");
       }
+      m_event_logger.register_sub(m_sub_id, m_ec.msg_name(), m_ec.topic_name());
     }
 
     dds_waitset_wait(m_waitset, nullptr, 0, DDS_SECS(15));

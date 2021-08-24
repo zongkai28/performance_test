@@ -57,6 +57,8 @@ public:
           this->m_ec.expected_wait_for_matched_timeout());
       }
 #endif
+      this->m_event_logger.register_sub(
+        this->m_sub_id, this->m_ec.msg_name(), this->m_ec.topic_name());
     }
     m_executor.spin_once(std::chrono::milliseconds(100));
   }

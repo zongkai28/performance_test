@@ -213,6 +213,7 @@ public:
       if (!m_condition_seq.ensure_length(2, 2)) {
         throw std::runtime_error("Error ensuring length of active_conditions_seq.");
       }
+      m_event_logger.register_sub(m_sub_id, m_ec.msg_name(), m_ec.topic_name());
     }
 
     DDS_Duration_t wait_timeout = {15, 0};

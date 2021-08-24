@@ -211,6 +211,7 @@ public:
       rparam.qos.m_reliability.kind = qos.reliability();
       rparam.qos.m_durability.kind = qos.durability();
       m_subscriber = eprosima::fastrtps::Domain::createSubscriber(m_participant, rparam);
+      m_event_logger.register_sub(m_sub_id, m_ec.msg_name(), m_ec.topic_name());
     }
 
     m_subscriber->waitForUnreadMessage();

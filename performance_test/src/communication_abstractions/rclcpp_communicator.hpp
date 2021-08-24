@@ -114,6 +114,7 @@ public:
           m_ec.expected_wait_for_matched_timeout());
       }
 #endif
+      m_event_logger.register_pub(m_pub_id, m_ec.msg_name(), m_ec.topic_name());
     }
     if (m_ec.is_zero_copy_transfer()) {
       if (!m_publisher->can_loan_messages()) {
@@ -121,16 +122,20 @@ public:
       }
       auto borrowed_message{m_publisher->borrow_loaned_message()};
       lock();
+      uint64_t sequence_id = next_sample_id();
+      m_event_logger.message_sent(m_pub_id, sequence_id, time);
       borrowed_message.get().time = time;
-      borrowed_message.get().id = next_sample_id();
+      borrowed_message.get().id = sequence_id;
       increment_sent();  // We increment before publishing so we don't have to lock twice.
       unlock();
       m_publisher->publish(std::move(borrowed_message));
     } else {
       DataType data;
       lock();
+      uint64_t sequence_id = next_sample_id();
+      m_event_logger.message_sent(m_pub_id, sequence_id, time);
       data.time = time;
-      data.id = next_sample_id();
+      data.id = sequence_id;
       increment_sent();  // We increment before publishing so we don't have to lock twice.
       unlock();
       m_publisher->publish(data);
@@ -179,6 +184,8 @@ protected:
       publish(data.time);
     } else {
       lock();
+      m_event_logger.message_received(
+        m_sub_id, data.id, perf_clock::now().time_since_epoch().count());
       m_prev_timestamp = data.time;
       update_lost_samples_counter(data.id);
       add_latency_to_statistics(data.time);

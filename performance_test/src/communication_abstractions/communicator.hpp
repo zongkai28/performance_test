@@ -15,13 +15,23 @@
 #ifndef COMMUNICATION_ABSTRACTIONS__COMMUNICATOR_HPP_
 #define COMMUNICATION_ABSTRACTIONS__COMMUNICATOR_HPP_
 
+#include <sole/sole.hpp>
+
 #include <stdexcept>
 #include <limits>
 #include <atomic>
+#include <string>
 
 #include "../utilities/spin_lock.hpp"
 #include "../utilities/statistics_tracker.hpp"
 #include "../experiment_configuration/experiment_configuration.hpp"
+#include "../events/event_db.hpp"
+
+#ifdef QNX710
+using perf_clock = std::chrono::system_clock;
+#else
+using perf_clock = std::chrono::steady_clock;
+#endif
 
 namespace performance_test
 {
@@ -86,6 +96,10 @@ protected:
   {
     return m_lock;
   }
+
+  EventDB m_event_logger;
+  const std::string m_pub_id;
+  const std::string m_sub_id;
 
 private:
   std::uint64_t m_prev_sample_id;

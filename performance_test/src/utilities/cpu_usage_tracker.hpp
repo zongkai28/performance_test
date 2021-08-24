@@ -26,28 +26,10 @@
 #include <chrono>
 #endif  // defined(QNX)
 
+#include "cpu_info.hpp"
+
 namespace performance_test
 {
-
-struct CpuInfo
-{
-  CpuInfo(uint32_t cpu_cores, float cpu_usage)
-  : m_cpu_cores(cpu_cores), m_cpu_usage(cpu_usage) {}
-
-  uint32_t cpu_cores() const
-  {
-    return m_cpu_cores;
-  }
-
-  float cpu_usage() const
-  {
-    return m_cpu_usage;
-  }
-
-private:
-  uint32_t m_cpu_cores;
-  float m_cpu_usage;
-};
 
 ///  Calculate the CPU usage for the running experiment in the performance test
 class CPUsageTracker

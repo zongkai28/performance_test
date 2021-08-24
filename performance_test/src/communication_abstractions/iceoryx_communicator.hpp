@@ -125,6 +125,7 @@ public:
           std::cerr << "unable to attach Event DATA_RECEIVED to iceoryx Waitset" << std::endl;
           std::exit(EXIT_FAILURE);
         });
+      m_event_logger.register_sub(m_sub_id, m_ec.msg_name(), m_ec.topic_name());
     }
 
     if (m_subscriber->getSubscriptionState() == iox::SubscribeState::SUBSCRIBED) {
