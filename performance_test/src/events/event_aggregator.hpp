@@ -12,10 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef EVENTS__EVENT_DB_HPP_
-#define EVENTS__EVENT_DB_HPP_
+#ifndef EVENTS__EVENT_AGGREGATOR_HPP_
+#define EVENTS__EVENT_AGGREGATOR_HPP_
 
-#include <sqlite3.h>
 #include <sys/resource.h>
 
 #include <string>
@@ -25,11 +24,11 @@
 
 namespace performance_test
 {
-class EventDB : public EventSink
+class EventAggregator : public EventSink
 {
 public:
-  explicit EventDB(const std::string & db_file);
-  ~EventDB();
+  EventAggregator();
+  ~EventAggregator();
   void begin_transaction();
   void end_transaction();
   void register_pub(
@@ -44,14 +43,7 @@ public:
     const CpuInfo & cpu_info, const rusage & sys_usage, std::int64_t timestamp);
 
 private:
-  void execute(const std::string & statement);
-  sqlite3 * m_db;
-  sqlite3_stmt * m_stmt_register_pub;
-  sqlite3_stmt * m_stmt_register_sub;
-  sqlite3_stmt * m_stmt_message_sent;
-  sqlite3_stmt * m_stmt_message_received;
-  sqlite3_stmt * m_stmt_system_measured;
 };
 }  // namespace performance_test
 
-#endif  // EVENTS__EVENT_DB_HPP_
+#endif  // EVENTS__EVENT_AGGREGATOR_HPP_

@@ -237,6 +237,8 @@ set(sources
     src/outputs/json_output.cpp
     src/events/event_db.hpp
     src/events/event_db.cpp
+    src/events/event_logger.hpp
+    src/events/event_logger.cpp
     src/experiment_configuration/topics.hpp
     src/data_running/data_runner.hpp
     src/data_running/data_runner_base.hpp

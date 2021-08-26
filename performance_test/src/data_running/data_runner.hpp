@@ -29,6 +29,7 @@
 #endif
 
 #include "../utilities/spin_lock.hpp"
+#include "../events/event_logger.hpp"
 
 #ifdef QNX710
 using perf_clock = std::chrono::system_clock;
@@ -48,8 +49,8 @@ public:
    * \brief Constructs an object and starts the internal worker thread.
    * \param run_type Specifies which type of operation to execute.
    */
-  explicit DataRunner(const RunType run_type)
-  : m_com(m_lock),
+  DataRunner(const RunType run_type, EventLogger & event_logger)
+  : m_com(m_lock, event_logger),
     m_run(true),
     m_sum_received_samples(0),
     m_sum_lost_samples(0),

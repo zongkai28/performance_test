@@ -12,26 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef EVENTS__EVENT_DB_HPP_
-#define EVENTS__EVENT_DB_HPP_
+#ifndef EVENTS__EVENT_LOGGER_HPP_
+#define EVENTS__EVENT_LOGGER_HPP_
 
-#include <sqlite3.h>
 #include <sys/resource.h>
 
 #include <string>
+#include <thread>
+#include <tuple>
+#include <vector>
+#include <memory>
 
-#include "../events/event_sink.hpp"
 #include "../utilities/cpu_info.hpp"
+#include "concurrentqueue.h"
+#include "event_sink.hpp"
 
 namespace performance_test
 {
-class EventDB : public EventSink
+class EventLogger
 {
 public:
-  explicit EventDB(const std::string & db_file);
-  ~EventDB();
-  void begin_transaction();
-  void end_transaction();
+  EventLogger(const std::vector<std::shared_ptr<EventSink>> & event_sinks);
+  ~EventLogger();
   void register_pub(
     const std::string & pub_id, const std::string & msg_type, const std::string & topic);
   void register_sub(
@@ -44,14 +46,25 @@ public:
     const CpuInfo & cpu_info, const rusage & sys_usage, std::int64_t timestamp);
 
 private:
-  void execute(const std::string & statement);
-  sqlite3 * m_db;
-  sqlite3_stmt * m_stmt_register_pub;
-  sqlite3_stmt * m_stmt_register_sub;
-  sqlite3_stmt * m_stmt_message_sent;
-  sqlite3_stmt * m_stmt_message_received;
-  sqlite3_stmt * m_stmt_system_measured;
+  using event_register_pub = std::tuple<std::string, std::string, std::string>;
+  using event_register_sub = std::tuple<std::string, std::string, std::string>;
+  using event_message_sent = std::tuple<std::string, std::uint64_t, std::int64_t>;
+  using event_message_received = std::tuple<std::string, std::uint64_t, std::int64_t>;
+  using event_system_measured = std::tuple<CpuInfo, rusage, std::int64_t>;
+
+  moodycamel::ConcurrentQueue<event_register_pub> m_q_register_pub;
+  moodycamel::ConcurrentQueue<event_register_sub> m_q_register_sub;
+  moodycamel::ConcurrentQueue<event_message_sent> m_q_message_sent;
+  moodycamel::ConcurrentQueue<event_message_received> m_q_message_received;
+  moodycamel::ConcurrentQueue<event_system_measured> m_q_system_measured;
+
+  const std::vector<std::shared_ptr<EventSink>> m_event_sinks;
+
+  bool m_run;
+  std::thread m_thread;
+
+  void thread_function();
 };
 }  // namespace performance_test
 
-#endif  // EVENTS__EVENT_DB_HPP_
+#endif  // EVENTS__EVENT_LOGGER_HPP_

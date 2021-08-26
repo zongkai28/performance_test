@@ -11,6 +11,9 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+#include <sole/sole.hpp>
+
 #include <algorithm>
 #include <cstdlib>
 #include <cstddef>
@@ -22,6 +25,7 @@
 
 #include "analyze_runner.hpp"
 #include "analysis_result.hpp"
+#include "../events/event_db.hpp"
 
 #ifdef QNX710
 using perf_clock = std::chrono::system_clock;
@@ -34,24 +38,18 @@ namespace performance_test
 
 AnalyzeRunner::AnalyzeRunner()
 : m_ec(ExperimentConfiguration::get()),
-  m_is_first_entry(true)
+  m_outputs(ExperimentConfiguration::get().configured_outputs()),
+  m_is_first_entry(true),
+  m_event_logger({std::make_shared<EventDB>(sole::uuid4().str() + ".db")})
 {
   for (uint32_t i = 0; i < m_ec.number_of_publishers(); ++i) {
     m_pub_runners.push_back(
-      DataRunnerFactory::get(m_ec.msg_name(), m_ec.com_mean(), RunType::PUBLISHER));
+      DataRunnerFactory::get(m_ec.msg_name(), m_ec.com_mean(), RunType::PUBLISHER, m_event_logger));
   }
   for (uint32_t i = 0; i < m_ec.number_of_subscribers(); ++i) {
     m_sub_runners.push_back(
-      DataRunnerFactory::get(m_ec.msg_name(), m_ec.com_mean(), RunType::SUBSCRIBER));
+      DataRunnerFactory::get(m_ec.msg_name(), m_ec.com_mean(), RunType::SUBSCRIBER, m_event_logger));
   }
-  for (const auto & output : m_ec.configured_outputs()) {
-    bind_output(output);
-  }
-}
-
-void AnalyzeRunner::bind_output(std::shared_ptr<Output> output)
-{
-  m_outputs.push_back(output);
 }
 
 void AnalyzeRunner::run()

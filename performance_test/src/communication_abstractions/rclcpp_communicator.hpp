@@ -86,8 +86,8 @@ public:
   using DataType = typename Msg::RosType;
 
   /// Constructor which takes a reference \param lock to the lock to use.
-  explicit RclcppCommunicator(SpinLock & lock)
-  : Communicator(lock),
+  RclcppCommunicator(SpinLock & lock, EventLogger & event_logger)
+  : Communicator(lock, event_logger),
     m_node(ResourceManager::get().rclcpp_node()),
     m_ROS2QOSAdapter(ROS2QOSAdapter(m_ec.qos()).get()),
     m_data_copy(std::make_unique<DataType>()) {}

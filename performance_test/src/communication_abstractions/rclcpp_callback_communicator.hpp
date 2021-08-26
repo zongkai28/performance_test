@@ -36,8 +36,8 @@ public:
   using DataType = typename RclcppCommunicator<Msg>::DataType;
 
   /// Constructor which takes a reference \param lock to the lock to use.
-  explicit RclcppCallbackCommunicator(SpinLock & lock)
-  : RclcppCommunicator<Msg>(lock),
+  RclcppCallbackCommunicator(SpinLock & lock, EventLogger & event_logger)
+  : RclcppCommunicator<Msg>(lock, event_logger),
     m_subscription(nullptr)
   {
     m_executor.add_node(this->m_node);

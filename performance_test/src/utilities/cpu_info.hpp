@@ -22,6 +22,8 @@ namespace performance_test
 class CpuInfo
 {
 public:
+  CpuInfo() {}
+
   CpuInfo(uint32_t cpu_cores, float cpu_usage)
   : m_cpu_cores(cpu_cores), m_cpu_usage(cpu_usage) {}
 

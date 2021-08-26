@@ -74,10 +74,10 @@ const auto SQL_INIT_DB_SCHEMA =
   ");";
 
 const auto SQL_INSERT_PUBLISHERS =
-  "INSERT INTO publishers (msg_type, topic) VALUES (?, ?);";
+  "INSERT INTO publishers (id, msg_type, topic) VALUES (?, ?, ?);";
 
 const auto SQL_INSERT_SUBSCRIBERS =
-  "INSERT INTO subscribers (msg_type, topic) VALUES (?, ?);";
+  "INSERT INTO subscribers (id, msg_type, topic) VALUES (?, ?, ?);";
 
 const auto SQL_INSERT_MESSAGES_SENT =
   "INSERT INTO messages_sent (publisher_id, sequence_id, timestamp) VALUES (?, ?, ?);";

@@ -38,8 +38,8 @@ public:
   using DataType = typename Msg::RosType;
 
   /// Constructor which takes a reference \param lock to the lock to use.
-  explicit IceoryxCommunicator(SpinLock & lock)
-  : Communicator(lock)
+  IceoryxCommunicator(SpinLock & lock, EventLogger & event_logger)
+  : Communicator(lock, event_logger)
   {
   }
 

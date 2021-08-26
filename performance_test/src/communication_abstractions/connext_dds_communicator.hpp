@@ -104,8 +104,8 @@ public:
   using DataTypeSeq = typename DataType::Seq;
 
   /// Constructor which takes a reference \param lock to the lock to use.
-  explicit RTIDDSCommunicator(SpinLock & lock)
-  : Communicator(lock),
+  RTIDDSCommunicator(SpinLock & lock, EventLogger & event_logger)
+  : Communicator(lock, event_logger),
     m_participant(ResourceManager::get().connext_dds_participant()),
     m_datawriter(nullptr),
     m_datareader(nullptr),

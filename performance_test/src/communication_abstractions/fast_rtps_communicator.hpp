@@ -130,8 +130,8 @@ public:
   using DataType = typename Topic::EprosimaType;
 
   /// Constructor which takes a reference \param lock to the lock to use.
-  explicit FastRTPSCommunicator(SpinLock & lock)
-  : Communicator(lock),
+  FastRTPSCommunicator(SpinLock & lock, EventLogger & event_logger)
+  : Communicator(lock, event_logger),
     m_publisher(nullptr),
     m_subscriber(nullptr),
     m_topic_type(new TopicType())

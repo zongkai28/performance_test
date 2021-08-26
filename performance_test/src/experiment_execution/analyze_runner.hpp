@@ -25,6 +25,7 @@
 #include "../experiment_configuration/experiment_configuration.hpp"
 #include "../outputs/output.hpp"
 #include "../utilities/cpu_usage_tracker.hpp"
+#include "../events/event_logger.hpp"
 
 namespace performance_test
 {
@@ -38,11 +39,6 @@ public:
    * \brief Creates publisher and subscriber runners used for the expermiment.
    */
   AnalyzeRunner();
-
-  /**
-   * \brief Bind outputs to receive the experiment results.
-   */
-  void bind_output(std::shared_ptr<Output> output);
 
   /**
    * \brief Runs the experiment.
@@ -78,6 +74,7 @@ private:
   std::vector<std::shared_ptr<DataRunnerBase>> m_sub_runners;
   mutable bool m_is_first_entry;
   CPUsageTracker cpu_usage_tracker;
+  EventLogger m_event_logger;
 };
 
 }  // namespace performance_test

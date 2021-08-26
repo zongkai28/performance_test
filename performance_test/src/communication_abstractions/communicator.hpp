@@ -25,7 +25,7 @@
 #include "../utilities/spin_lock.hpp"
 #include "../utilities/statistics_tracker.hpp"
 #include "../experiment_configuration/experiment_configuration.hpp"
-#include "../events/event_db.hpp"
+#include "../events/event_logger.hpp"
 
 #ifdef QNX710
 using perf_clock = std::chrono::system_clock;
@@ -41,7 +41,7 @@ class Communicator
 {
 public:
   /// Constructor which takes a reference \param lock to the lock to use.
-  explicit Communicator(SpinLock & lock);
+  explicit Communicator(SpinLock & lock, EventLogger & event_logger);
 
   /// Number of received samples.
   std::uint64_t num_received_samples() const;
@@ -97,7 +97,7 @@ protected:
     return m_lock;
   }
 
-  EventDB m_event_logger;
+  EventLogger & m_event_logger;
   const std::string m_pub_id;
   const std::string m_sub_id;
 

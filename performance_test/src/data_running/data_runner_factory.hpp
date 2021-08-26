@@ -20,6 +20,7 @@
 
 #include "data_runner_base.hpp"
 #include "../experiment_configuration/communication_mean.hpp"
+#include "../events/event_logger.hpp"
 
 namespace performance_test
 {
@@ -38,7 +39,8 @@ public:
   static std::shared_ptr<DataRunnerBase> get(
     const std::string & requested_topic_name,
     CommunicationMean com_mean,
-    const RunType run_type);
+    const RunType run_type,
+    EventLogger & event_logger);
 };
 
 }  // namespace performance_test

@@ -59,12 +59,13 @@ namespace performance_test
 std::shared_ptr<DataRunnerBase> DataRunnerFactory::get(
   const std::string & requested_msg,
   CommunicationMean com_mean,
-  const RunType run_type)
+  const RunType run_type,
+  EventLogger & event_logger)
 {
   std::shared_ptr<DataRunnerBase> ptr;
   performance_test::for_each(
     topics::TopicTypeList(),
-    [&ptr, requested_msg, com_mean, run_type](const auto & msg_type) {
+    [&ptr, requested_msg, com_mean, run_type, &event_logger](const auto & msg_type) {
       using T = std::remove_cv_t<std::remove_reference_t<decltype(msg_type)>>;
       if (T::msg_name() == requested_msg) {
         if (ptr) {
@@ -73,42 +74,42 @@ std::shared_ptr<DataRunnerBase> DataRunnerFactory::get(
 #ifdef PERFORMANCE_TEST_RCLCPP_ENABLED
         if (com_mean == CommunicationMean::RCLCPP_SINGLE_THREADED_EXECUTOR) {
           ptr = std::make_shared<DataRunner<
-            RclcppSingleThreadedExecutorCommunicator<T>>>(run_type);
+            RclcppSingleThreadedExecutorCommunicator<T>>>(run_type, event_logger);
         }
 #endif
 #ifdef PERFORMANCE_TEST_APEX_OS_POLLING_SUBSCRIPTION_ENABLED
         if (com_mean == CommunicationMean::ApexOSPollingSubscription) {
-          ptr = std::make_shared<DataRunner<ApexOSPollingSubscriptionCommunicator<T>>>(run_type);
+          ptr = std::make_shared<DataRunner<ApexOSPollingSubscriptionCommunicator<T>>>(run_type, event_logger);
         }
 #endif
 #ifdef PERFORMANCE_TEST_FASTRTPS_ENABLED
         if (com_mean == CommunicationMean::FASTRTPS) {
-          ptr = std::make_shared<DataRunner<FastRTPSCommunicator<T>>>(run_type);
+          ptr = std::make_shared<DataRunner<FastRTPSCommunicator<T>>>(run_type, event_logger);
         }
 #endif
 #ifdef PERFORMANCE_TEST_CONNEXTDDSMICRO_ENABLED
         if (com_mean == CommunicationMean::CONNEXTDDSMICRO) {
-          ptr = std::make_shared<DataRunner<RTIMicroDDSCommunicator<T>>>(run_type);
+          ptr = std::make_shared<DataRunner<RTIMicroDDSCommunicator<T>>>(run_type, event_logger);
         }
 #endif
 #ifdef PERFORMANCE_TEST_CONNEXTDDS_ENABLED
         if (com_mean == CommunicationMean::CONNEXTDDS) {
-          ptr = std::make_shared<DataRunner<RTIDDSCommunicator<T>>>(run_type);
+          ptr = std::make_shared<DataRunner<RTIDDSCommunicator<T>>>(run_type, event_logger);
         }
 #endif
 #ifdef PERFORMANCE_TEST_CYCLONEDDS_ENABLED
         if (com_mean == CommunicationMean::CYCLONEDDS) {
-          ptr = std::make_shared<DataRunner<CycloneDDSCommunicator<T>>>(run_type);
+          ptr = std::make_shared<DataRunner<CycloneDDSCommunicator<T>>>(run_type, event_logger);
         }
 #endif
 #ifdef PERFORMANCE_TEST_ICEORYX_ENABLED
         if (com_mean == CommunicationMean::ICEORYX) {
-          ptr = std::make_shared<DataRunner<IceoryxCommunicator<T>>>(run_type);
+          ptr = std::make_shared<DataRunner<IceoryxCommunicator<T>>>(run_type, event_logger);
         }
 #endif
 #ifdef PERFORMANCE_TEST_OPENDDS_ENABLED
         if (com_mean == CommunicationMean::OPENDDS) {
-          ptr = std::make_shared<DataRunner<OpenDDSCommunicator<T>>>(run_type);
+          ptr = std::make_shared<DataRunner<OpenDDSCommunicator<T>>>(run_type, event_logger);
         }
 #endif
       }

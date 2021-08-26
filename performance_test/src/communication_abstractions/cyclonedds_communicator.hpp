@@ -141,8 +141,8 @@ public:
   using DataType = typename Msg::CycloneDDSType;
 
   /// Constructor which takes a reference \param lock to the lock to use.
-  explicit CycloneDDSCommunicator(SpinLock & lock)
-  : Communicator(lock),
+  CycloneDDSCommunicator(SpinLock & lock, EventLogger & event_logger)
+  : Communicator(lock, event_logger),
     m_participant(ResourceManager::get().cyclonedds_participant()),
     m_datawriter(0),
     m_datareader(0)

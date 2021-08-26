@@ -27,10 +27,10 @@
 namespace performance_test
 {
 
-Communicator::Communicator(SpinLock & lock)
+Communicator::Communicator(SpinLock & lock, EventLogger & event_logger)
 : m_ec(ExperimentConfiguration::get()),
   m_prev_timestamp(),
-  m_event_logger(sole::uuid4().str() + ".db"),
+  m_event_logger(event_logger),
   m_pub_id(sole::uuid4().str()),
   m_sub_id(sole::uuid4().str()),
   m_prev_sample_id(),

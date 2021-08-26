@@ -40,8 +40,8 @@ public:
   using DataType = typename RclcppCommunicator<Msg>::DataType;
 
   /// Constructor which takes a reference \param lock to the lock to use.
-  explicit ApexOSPollingSubscriptionCommunicator(SpinLock & lock)
-  : RclcppCommunicator<Msg>(lock),
+  ApexOSPollingSubscriptionCommunicator(SpinLock & lock, EventLogger & event_logger)
+  : RclcppCommunicator<Msg>(lock, event_logger),
     m_polling_subscription(nullptr) {}
 
   /// Reads received data from ROS 2 using waitsets

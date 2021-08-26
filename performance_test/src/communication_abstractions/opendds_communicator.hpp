@@ -142,8 +142,8 @@ public:
   using DataTypeSeq = typename Topic::OpenDDSDataTypeSeq;
 
   /// Constructor which takes a reference \param lock to the lock to use.
-  explicit OpenDDSCommunicator(SpinLock & lock)
-  : Communicator(lock),
+  OpenDDSCommunicator(SpinLock & lock, EventLogger & event_logger)
+  : Communicator(lock, event_logger),
     m_datawriter(nullptr),
     m_datareader(nullptr),
     m_typed_datareader(nullptr)
