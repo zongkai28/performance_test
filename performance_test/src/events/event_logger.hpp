@@ -24,6 +24,7 @@
 #include <memory>
 
 #include "../utilities/cpu_info.hpp"
+#include "../experiment_configuration/experiment_configuration.hpp"
 #include "concurrentqueue.h"
 #include "event_sink.hpp"
 
@@ -32,7 +33,7 @@ namespace performance_test
 class EventLogger
 {
 public:
-  EventLogger(const std::vector<std::shared_ptr<EventSink>> & event_sinks);
+  EventLogger(const ExperimentConfiguration & ec);
   ~EventLogger();
   void register_pub(
     const std::string & pub_id, const std::string & msg_type, const std::string & topic);
@@ -46,17 +47,11 @@ public:
     const CpuInfo & cpu_info, const rusage & sys_usage, std::int64_t timestamp);
 
 private:
-  using event_register_pub = std::tuple<std::string, std::string, std::string>;
-  using event_register_sub = std::tuple<std::string, std::string, std::string>;
-  using event_message_sent = std::tuple<std::string, std::uint64_t, std::int64_t>;
-  using event_message_received = std::tuple<std::string, std::uint64_t, std::int64_t>;
-  using event_system_measured = std::tuple<CpuInfo, rusage, std::int64_t>;
-
-  moodycamel::ConcurrentQueue<event_register_pub> m_q_register_pub;
-  moodycamel::ConcurrentQueue<event_register_sub> m_q_register_sub;
-  moodycamel::ConcurrentQueue<event_message_sent> m_q_message_sent;
-  moodycamel::ConcurrentQueue<event_message_received> m_q_message_received;
-  moodycamel::ConcurrentQueue<event_system_measured> m_q_system_measured;
+  moodycamel::ConcurrentQueue<EventRegisterPub> m_q_register_pub;
+  moodycamel::ConcurrentQueue<EventRegisterSub> m_q_register_sub;
+  moodycamel::ConcurrentQueue<EventMessageSent> m_q_message_sent;
+  moodycamel::ConcurrentQueue<EventMessageReceived> m_q_message_received;
+  moodycamel::ConcurrentQueue<EventSystemMeasured> m_q_system_measured;
 
   const std::vector<std::shared_ptr<EventSink>> m_event_sinks;
 
@@ -64,6 +59,9 @@ private:
   std::thread m_thread;
 
   void thread_function();
+
+  static std::vector<std::shared_ptr<EventSink>>
+  create_event_sinks(const ExperimentConfiguration & ec);
 };
 }  // namespace performance_test
 

@@ -24,6 +24,37 @@
 
 namespace performance_test
 {
+
+struct EventRegisterPub {
+  std::string pub_id;
+  std::string msg_type;
+  std::string topic;
+};
+
+struct EventRegisterSub {
+  std::string sub_id;
+  std::string msg_type;
+  std::string topic;
+};
+
+struct EventMessageSent {
+  std::string pub_id;
+  std::uint64_t sequence_id;
+  std::int64_t timestamp;
+};
+
+struct EventMessageReceived {
+  std::string sub_id;
+  std::uint64_t sequence_id;
+  std::int64_t timestamp;
+};
+
+struct EventSystemMeasured {
+  CpuInfo cpu_info;
+  rusage sys_usage;
+  std::int64_t timestamp;
+};
+
 class EventSink
 {
 public:
@@ -33,16 +64,11 @@ public:
   virtual void begin_transaction() = 0;
   virtual void end_transaction() = 0;
   
-  virtual void register_pub(
-    const std::string & pub_id, const std::string & msg_type, const std::string & topic) = 0;
-  virtual void register_sub(
-    const std::string & sub_id, const std::string & msg_type, const std::string & topic) = 0;
-  virtual void message_sent(
-    const std::string & pub_id, std::uint64_t sequence_id, std::int64_t timestamp) = 0;
-  virtual void message_received(
-    const std::string & sub_id, std::uint64_t sequence_id, std::int64_t timestamp) = 0;
-  virtual void system_measured(
-    const CpuInfo & cpu_info, const rusage & sys_usage, std::int64_t timestamp) = 0;
+  virtual void register_pub(const EventRegisterPub & event) = 0;
+  virtual void register_sub(const EventRegisterSub & event) = 0;
+  virtual void message_sent(const EventMessageSent & event) = 0;
+  virtual void message_received(const EventMessageReceived & event) = 0;
+  virtual void system_measured(const EventSystemMeasured & event) = 0;
 };
 }  // namespace performance_test
 

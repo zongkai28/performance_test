@@ -13,6 +13,10 @@
 // limitations under the License.
 
 #include "event_logger.hpp"
+#include "event_db.hpp"
+#include "event_aggregator.hpp"
+
+#include <sole/sole.hpp>
 
 #include <string>
 #include <chrono>
@@ -24,8 +28,8 @@
 namespace performance_test
 {
 
-EventLogger::EventLogger(const std::vector<std::shared_ptr<EventSink>> & event_sinks)
-: m_event_sinks(event_sinks),
+EventLogger::EventLogger(const ExperimentConfiguration & ec)
+: m_event_sinks(create_event_sinks(ec)),
   m_run(true),
   m_thread(std::bind(&EventLogger::thread_function, this))
 {
@@ -40,31 +44,31 @@ EventLogger::~EventLogger()
 void EventLogger::register_pub(
   const std::string & pub_id, const std::string & msg_type, const std::string & topic)
 {
-  m_q_register_pub.enqueue(std::forward_as_tuple(pub_id, msg_type, topic));
+  m_q_register_pub.enqueue(EventRegisterPub{pub_id, msg_type, topic});
 }
 
 void EventLogger::register_sub(
   const std::string & sub_id, const std::string & msg_type, const std::string & topic)
 {
-  m_q_register_sub.enqueue(std::forward_as_tuple(sub_id, msg_type, topic));
+  m_q_register_sub.enqueue(EventRegisterSub{sub_id, msg_type, topic});
 }
 
 void EventLogger::message_sent(
   const std::string & pub_id, std::uint64_t sequence_id, std::int64_t timestamp)
 {
-  m_q_message_sent.enqueue(std::forward_as_tuple(pub_id, sequence_id, timestamp));
+  m_q_message_sent.enqueue(EventMessageSent{pub_id, sequence_id, timestamp});
 }
 
 void EventLogger::message_received(
   const std::string & sub_id, std::uint64_t sequence_id, std::int64_t timestamp)
 {
-  m_q_message_received.enqueue(std::forward_as_tuple(sub_id, sequence_id, timestamp));
+  m_q_message_received.enqueue(EventMessageReceived{sub_id, sequence_id, timestamp});
 }
 
 void EventLogger::system_measured(
   const CpuInfo & cpu_info, const rusage & sys_usage, std::int64_t timestamp)
 {
-  m_q_system_measured.enqueue(std::forward_as_tuple(cpu_info, sys_usage, timestamp));
+  m_q_system_measured.enqueue(EventSystemMeasured{cpu_info, sys_usage, timestamp});
 }
 
 void EventLogger::thread_function()
@@ -74,38 +78,38 @@ void EventLogger::thread_function()
       sink->begin_transaction();
     }
 
-    event_register_pub erp;
+    EventRegisterPub erp;
     while(m_q_register_pub.try_dequeue(erp)) {
       for (auto & sink : m_event_sinks) {
-        sink->register_pub(std::get<0>(erp), std::get<1>(erp), std::get<2>(erp));
+        sink->register_pub(erp);
       }
     }
 
-    event_register_pub ers;
+    EventRegisterSub ers;
     while(m_q_register_sub.try_dequeue(ers)) {
       for (auto & sink : m_event_sinks) {
-        sink->register_sub(std::get<0>(ers), std::get<1>(ers), std::get<2>(ers));
+        sink->register_sub(ers);
       }
     }
 
-    event_message_sent ems;
+    EventMessageSent ems;
     while(m_q_message_sent.try_dequeue(ems)) {
       for (auto & sink : m_event_sinks) {
-        sink->message_sent(std::get<0>(ems), std::get<1>(ems), std::get<2>(ems));
+        sink->message_sent(ems);
       }
     }
 
-    event_message_sent emr;
+    EventMessageReceived emr;
     while(m_q_message_received.try_dequeue(emr)) {
       for (auto & sink : m_event_sinks) {
-        sink->message_received(std::get<0>(emr), std::get<1>(emr), std::get<2>(emr));
+        sink->message_received(emr);
       }
     }
 
-    event_system_measured esm;
+    EventSystemMeasured esm;
     while(m_q_system_measured.try_dequeue(esm)) {
       for (auto & sink : m_event_sinks) {
-        sink->system_measured(std::get<0>(esm), std::get<1>(esm), std::get<2>(esm));
+        sink->system_measured(esm);
       }
     }
 
@@ -113,6 +117,20 @@ void EventLogger::thread_function()
       sink->end_transaction();
     }
   }
+}
+
+std::vector<std::shared_ptr<performance_test::EventSink>>
+EventLogger::create_event_sinks(const ExperimentConfiguration & ec) {
+  std::vector<std::shared_ptr<EventSink>> sinks;
+  
+  sinks.push_back(std::make_shared<EventDB>(sole::uuid4().str() + ".db"));
+  
+  auto outputs = ec.configured_outputs();
+  if (!outputs.empty()) {
+    sinks.push_back(std::make_shared<EventAggregator>(outputs));
+  }
+
+  return sinks;
 }
 
 }  // namespace performance_test

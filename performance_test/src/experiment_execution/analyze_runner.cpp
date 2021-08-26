@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <sole/sole.hpp>
-
 #include <algorithm>
 #include <cstdlib>
 #include <cstddef>
@@ -26,12 +24,8 @@
 #include "analyze_runner.hpp"
 #include "analysis_result.hpp"
 #include "../events/event_db.hpp"
-
-#ifdef QNX710
-using perf_clock = std::chrono::system_clock;
-#else
-using perf_clock = std::chrono::steady_clock;
-#endif
+#include "../events/event_aggregator.hpp"
+#include "../utilities/perf_clock.hpp"
 
 namespace performance_test
 {
@@ -40,7 +34,7 @@ AnalyzeRunner::AnalyzeRunner()
 : m_ec(ExperimentConfiguration::get()),
   m_outputs(ExperimentConfiguration::get().configured_outputs()),
   m_is_first_entry(true),
-  m_event_logger({std::make_shared<EventDB>(sole::uuid4().str() + ".db")})
+  m_event_logger(ExperimentConfiguration::get())
 {
   for (uint32_t i = 0; i < m_ec.number_of_publishers(); ++i) {
     m_pub_runners.push_back(
@@ -54,9 +48,9 @@ AnalyzeRunner::AnalyzeRunner()
 
 void AnalyzeRunner::run()
 {
-  for (const auto & output : m_outputs) {
-    output->open();
-  }
+  // for (const auto & output : m_outputs) {
+  //   output->open();
+  // }
 
   const auto experiment_start = perf_clock::now();
 
@@ -81,14 +75,14 @@ void AnalyzeRunner::run()
     auto loop_diff_start = now - loop_start;
     auto experiment_diff_start = now - experiment_start;
     auto result = analyze(loop_diff_start, experiment_diff_start);
-    for (const auto & output : m_outputs) {
-      output->update(result);
-    }
+    // for (const auto & output : m_outputs) {
+    //   output->update(result);
+    // }
   }
 
-  for (const auto & output : m_outputs) {
-    output->close();
-  }
+  // for (const auto & output : m_outputs) {
+  //   output->close();
+  // }
 }
 
 std::shared_ptr<const AnalysisResult> AnalyzeRunner::analyze(

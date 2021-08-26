@@ -146,43 +146,39 @@ void EventDB::end_transaction()
   execute("END TRANSACTION");
 }
 
-void EventDB::register_pub(
-  const std::string & pub_id, const std::string & msg_type, const std::string & topic)
+void EventDB::register_pub(const EventRegisterPub & event)
 {
   sqlite3_reset(m_stmt_register_pub);
-  sqlite3_bind_text(m_stmt_register_pub, 1, pub_id.c_str(), -1, SQLITE_STATIC);
-  sqlite3_bind_text(m_stmt_register_pub, 2, msg_type.c_str(), -1, SQLITE_STATIC);
-  sqlite3_bind_text(m_stmt_register_pub, 3, topic.c_str(), -1, SQLITE_STATIC);
+  sqlite3_bind_text(m_stmt_register_pub, 1, event.pub_id.c_str(), -1, SQLITE_STATIC);
+  sqlite3_bind_text(m_stmt_register_pub, 2, event.msg_type.c_str(), -1, SQLITE_STATIC);
+  sqlite3_bind_text(m_stmt_register_pub, 3, event.topic.c_str(), -1, SQLITE_STATIC);
   sqlite3_step(m_stmt_register_pub);
 }
 
-void EventDB::register_sub(
-  const std::string & sub_id, const std::string & msg_type, const std::string & topic)
+void EventDB::register_sub(const EventRegisterSub & event)
 {
   sqlite3_reset(m_stmt_register_sub);
-  sqlite3_bind_text(m_stmt_register_sub, 1, sub_id.c_str(), -1, SQLITE_STATIC);
-  sqlite3_bind_text(m_stmt_register_sub, 2, msg_type.c_str(), -1, SQLITE_STATIC);
-  sqlite3_bind_text(m_stmt_register_sub, 3, topic.c_str(), -1, SQLITE_STATIC);
+  sqlite3_bind_text(m_stmt_register_sub, 1, event.sub_id.c_str(), -1, SQLITE_STATIC);
+  sqlite3_bind_text(m_stmt_register_sub, 2, event.msg_type.c_str(), -1, SQLITE_STATIC);
+  sqlite3_bind_text(m_stmt_register_sub, 3, event.topic.c_str(), -1, SQLITE_STATIC);
   sqlite3_step(m_stmt_register_sub);
 }
 
-void EventDB::message_sent(
-  const std::string & pub_id, std::uint64_t sequence_id, std::int64_t timestamp)
+void EventDB::message_sent(const EventMessageSent & event)
 {
   sqlite3_reset(m_stmt_message_sent);
-  sqlite3_bind_text(m_stmt_message_sent, 1, pub_id.c_str(), -1, SQLITE_STATIC);
-  sqlite3_bind_int64(m_stmt_message_sent, 2, static_cast<std::int64_t>(sequence_id));
-  sqlite3_bind_int64(m_stmt_message_sent, 3, timestamp);
+  sqlite3_bind_text(m_stmt_message_sent, 1, event.pub_id.c_str(), -1, SQLITE_STATIC);
+  sqlite3_bind_int64(m_stmt_message_sent, 2, static_cast<std::int64_t>(event.sequence_id));
+  sqlite3_bind_int64(m_stmt_message_sent, 3, event.timestamp);
   sqlite3_step(m_stmt_message_sent);
 }
 
-void EventDB::message_received(
-  const std::string & sub_id, std::uint64_t sequence_id, std::int64_t timestamp)
+void EventDB::message_received(const EventMessageReceived & event)
 {
   sqlite3_reset(m_stmt_message_received);
-  sqlite3_bind_text(m_stmt_message_received, 1, sub_id.c_str(), -1, SQLITE_STATIC);
-  sqlite3_bind_int64(m_stmt_message_received, 2, static_cast<std::int64_t>(sequence_id));
-  sqlite3_bind_int64(m_stmt_message_received, 3, timestamp);
+  sqlite3_bind_text(m_stmt_message_received, 1, event.sub_id.c_str(), -1, SQLITE_STATIC);
+  sqlite3_bind_int64(m_stmt_message_received, 2, static_cast<std::int64_t>(event.sequence_id));
+  sqlite3_bind_int64(m_stmt_message_received, 3, event.timestamp);
   sqlite3_step(m_stmt_message_received);
 }
 
@@ -197,28 +193,27 @@ int sqlite3_bind_timeval(sqlite3_stmt * stmt, int idx, const timeval & val)
 }
 }  // namespace
 
-void EventDB::system_measured(
-  const CpuInfo & cpu_info, const rusage & sys_usage, std::int64_t timestamp)
+void EventDB::system_measured(const EventSystemMeasured & event)
 {
   sqlite3_reset(m_stmt_system_measured);
-  sqlite3_bind_double(m_stmt_system_measured, 1, cpu_info.cpu_usage());
-  sqlite3_bind_timeval(m_stmt_system_measured, 2, sys_usage.ru_utime);
-  sqlite3_bind_timeval(m_stmt_system_measured, 3, sys_usage.ru_stime);
-  sqlite3_bind_int64(m_stmt_system_measured, 4, sys_usage.ru_maxrss);
-  sqlite3_bind_int64(m_stmt_system_measured, 5, sys_usage.ru_ixrss);
-  sqlite3_bind_int64(m_stmt_system_measured, 6, sys_usage.ru_idrss);
-  sqlite3_bind_int64(m_stmt_system_measured, 7, sys_usage.ru_isrss);
-  sqlite3_bind_int64(m_stmt_system_measured, 8, sys_usage.ru_minflt);
-  sqlite3_bind_int64(m_stmt_system_measured, 9, sys_usage.ru_majflt);
-  sqlite3_bind_int64(m_stmt_system_measured, 10, sys_usage.ru_nswap);
-  sqlite3_bind_int64(m_stmt_system_measured, 11, sys_usage.ru_inblock);
-  sqlite3_bind_int64(m_stmt_system_measured, 12, sys_usage.ru_oublock);
-  sqlite3_bind_int64(m_stmt_system_measured, 13, sys_usage.ru_msgsnd);
-  sqlite3_bind_int64(m_stmt_system_measured, 14, sys_usage.ru_msgrcv);
-  sqlite3_bind_int64(m_stmt_system_measured, 15, sys_usage.ru_nsignals);
-  sqlite3_bind_int64(m_stmt_system_measured, 16, sys_usage.ru_nvcsw);
-  sqlite3_bind_int64(m_stmt_system_measured, 17, sys_usage.ru_nivcsw);
-  sqlite3_bind_int64(m_stmt_system_measured, 18, timestamp);
+  sqlite3_bind_double(m_stmt_system_measured, 1, event.cpu_info.cpu_usage());
+  sqlite3_bind_timeval(m_stmt_system_measured, 2, event.sys_usage.ru_utime);
+  sqlite3_bind_timeval(m_stmt_system_measured, 3, event.sys_usage.ru_stime);
+  sqlite3_bind_int64(m_stmt_system_measured, 4, event.sys_usage.ru_maxrss);
+  sqlite3_bind_int64(m_stmt_system_measured, 5, event.sys_usage.ru_ixrss);
+  sqlite3_bind_int64(m_stmt_system_measured, 6, event.sys_usage.ru_idrss);
+  sqlite3_bind_int64(m_stmt_system_measured, 7, event.sys_usage.ru_isrss);
+  sqlite3_bind_int64(m_stmt_system_measured, 8, event.sys_usage.ru_minflt);
+  sqlite3_bind_int64(m_stmt_system_measured, 9, event.sys_usage.ru_majflt);
+  sqlite3_bind_int64(m_stmt_system_measured, 10, event.sys_usage.ru_nswap);
+  sqlite3_bind_int64(m_stmt_system_measured, 11, event.sys_usage.ru_inblock);
+  sqlite3_bind_int64(m_stmt_system_measured, 12, event.sys_usage.ru_oublock);
+  sqlite3_bind_int64(m_stmt_system_measured, 13, event.sys_usage.ru_msgsnd);
+  sqlite3_bind_int64(m_stmt_system_measured, 14, event.sys_usage.ru_msgrcv);
+  sqlite3_bind_int64(m_stmt_system_measured, 15, event.sys_usage.ru_nsignals);
+  sqlite3_bind_int64(m_stmt_system_measured, 16, event.sys_usage.ru_nvcsw);
+  sqlite3_bind_int64(m_stmt_system_measured, 17, event.sys_usage.ru_nivcsw);
+  sqlite3_bind_int64(m_stmt_system_measured, 18, event.timestamp);
   sqlite3_step(m_stmt_system_measured);
 }
 

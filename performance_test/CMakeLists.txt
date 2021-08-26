@@ -235,6 +235,8 @@ set(sources
     src/outputs/stdout_output.cpp
     src/outputs/csv_output.cpp
     src/outputs/json_output.cpp
+    src/events/event_aggregator.hpp
+    src/events/event_aggregator.cpp
     src/events/event_db.hpp
     src/events/event_db.cpp
     src/events/event_logger.hpp

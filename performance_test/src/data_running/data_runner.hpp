@@ -29,13 +29,8 @@
 #endif
 
 #include "../utilities/spin_lock.hpp"
+#include "../utilities/perf_clock.hpp"
 #include "../events/event_logger.hpp"
-
-#ifdef QNX710
-using perf_clock = std::chrono::system_clock;
-#else
-using perf_clock = std::chrono::steady_clock;
-#endif
 
 namespace performance_test
 {

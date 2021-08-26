@@ -17,32 +17,57 @@
 
 #include <sys/resource.h>
 
-#include <string>
+#include <vector>
+#include <memory>
+#include <tuple>
+#include <map>
+#include <mutex>
 
 #include "../events/event_sink.hpp"
 #include "../utilities/cpu_info.hpp"
+#include "../outputs/output.hpp"
+#include "../utilities/statistics_tracker.hpp"
+#include "../utilities/perf_clock.hpp"
 
 namespace performance_test
 {
 class EventAggregator : public EventSink
 {
 public:
-  EventAggregator();
+  EventAggregator(const std::vector<std::shared_ptr<Output>> & outputs);
   ~EventAggregator();
   void begin_transaction();
   void end_transaction();
-  void register_pub(
-    const std::string & pub_id, const std::string & msg_type, const std::string & topic);
-  void register_sub(
-    const std::string & sub_id, const std::string & msg_type, const std::string & topic);
-  void message_sent(
-    const std::string & pub_id, std::uint64_t sequence_id, std::int64_t timestamp);
-  void message_received(
-    const std::string & sub_id, std::uint64_t sequence_id, std::int64_t timestamp);
-  void system_measured(
-    const CpuInfo & cpu_info, const rusage & sys_usage, std::int64_t timestamp);
+  void register_pub(const EventRegisterPub & event);
+  void register_sub(const EventRegisterSub & event);
+  void message_sent(const EventMessageSent & event);
+  void message_received(const EventMessageReceived & event);
+  void system_measured(const EventSystemMeasured & event);
 
 private:
+  const perf_clock::time_point m_experiment_start_time;
+  StatisticsTracker m_latency_statistics;
+
+  typedef std::uint64_t sequence_id;
+  typedef std::int64_t timestamp;
+
+  // TODO(erik.snider) this design does not handle more than 1 pub,
+  // or more than one topic. I think that changinge the keys to a
+  // std::pair<pub_id, seq_id> would be the next step.
+  std::map<sequence_id, timestamp> m_published_timestamps;
+  std::map<sequence_id, int> m_received_count;
+
+  int m_num_subs;
+  
+  EventSystemMeasured m_event_system_measured;
+
+  const std::vector<std::shared_ptr<Output>> m_outputs;
+
+  bool m_run;
+  std::thread m_thread;
+  std::mutex m_mutex;
+
+  void thread_function();
 };
 }  // namespace performance_test
 

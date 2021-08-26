@@ -32,16 +32,11 @@ public:
   ~EventDB();
   void begin_transaction();
   void end_transaction();
-  void register_pub(
-    const std::string & pub_id, const std::string & msg_type, const std::string & topic);
-  void register_sub(
-    const std::string & sub_id, const std::string & msg_type, const std::string & topic);
-  void message_sent(
-    const std::string & pub_id, std::uint64_t sequence_id, std::int64_t timestamp);
-  void message_received(
-    const std::string & sub_id, std::uint64_t sequence_id, std::int64_t timestamp);
-  void system_measured(
-    const CpuInfo & cpu_info, const rusage & sys_usage, std::int64_t timestamp);
+  void register_pub(const EventRegisterPub & event);
+  void register_sub(const EventRegisterSub & event);
+  void message_sent(const EventMessageSent & event);
+  void message_received(const EventMessageReceived & event);
+  void system_measured(const EventSystemMeasured & event);
 
 private:
   void execute(const std::string & statement);

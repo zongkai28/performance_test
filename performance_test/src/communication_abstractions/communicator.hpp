@@ -26,12 +26,7 @@
 #include "../utilities/statistics_tracker.hpp"
 #include "../experiment_configuration/experiment_configuration.hpp"
 #include "../events/event_logger.hpp"
-
-#ifdef QNX710
-using perf_clock = std::chrono::system_clock;
-#else
-using perf_clock = std::chrono::steady_clock;
-#endif
+#include "../utilities/perf_clock.hpp"
 
 namespace performance_test
 {
