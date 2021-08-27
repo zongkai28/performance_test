@@ -45,17 +45,25 @@ public:
   void system_measured(const EventSystemMeasured & event);
 
 private:
-  const perf_clock::time_point m_experiment_start_time;
-  StatisticsTracker m_latency_statistics;
-
   typedef std::uint64_t sequence_id;
   typedef std::int64_t timestamp;
+  typedef std::string pub_id;
+  typedef std::string sub_id;
+
+  const perf_clock::time_point m_experiment_start_time;
+  StatisticsTracker m_latency_statistics;
+  uint64_t m_num_sent_samples;
+  uint64_t m_num_received_samples;
+  uint64_t m_num_lost_samples;
 
   // TODO(erik.snider) this design does not handle more than 1 pub,
   // or more than one topic. I think that changinge the keys to a
   // std::pair<pub_id, seq_id> would be the next step.
+  // For full flexibility, the pub_id would also have to be embedded
+  // in the message.
   std::map<sequence_id, timestamp> m_published_timestamps;
   std::map<sequence_id, int> m_received_count;
+  std::map<sub_id, sequence_id> m_latest_received;
 
   int m_num_subs;
   

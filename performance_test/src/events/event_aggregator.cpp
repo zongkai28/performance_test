@@ -26,6 +26,9 @@ namespace performance_test
 
 EventAggregator::EventAggregator(const std::vector<std::shared_ptr<Output>> & outputs)
 : m_experiment_start_time(perf_clock::now()),
+  m_num_sent_samples(0),
+  m_num_received_samples(0),
+  m_num_lost_samples(0),
   m_outputs(outputs),
   m_run(true),
   m_thread(std::bind(&EventAggregator::thread_function, this))
@@ -64,24 +67,30 @@ void EventAggregator::register_sub(const EventRegisterSub &)
 void EventAggregator::message_sent(const EventMessageSent & event)
 {
   std::lock_guard<std::mutex> guard(m_mutex);
+  m_num_sent_samples++;
   m_published_timestamps[event.sequence_id] = event.timestamp;
 }
 
 void EventAggregator::message_received(const EventMessageReceived & event)
 {
+  sequence_id seq_id = event.sequence_id;
   std::lock_guard<std::mutex> guard(m_mutex);
-  sequence_id id = event.sequence_id;
-  std::chrono::nanoseconds ts_sent(m_published_timestamps[id]);
-  std::chrono::nanoseconds ts_rcvd(event.timestamp);
-  auto diff = ts_rcvd - ts_sent;
-  auto sec_diff = std::chrono::duration_cast<std::chrono::duration<double>>(diff).count();
+  m_num_received_samples++;
+
+  auto diff_count = m_published_timestamps[seq_id] - event.timestamp;
+  auto diff_ns = std::chrono::nanoseconds{diff_count};
+  auto sec_diff = std::chrono::duration_cast<std::chrono::duration<double>>(diff_ns).count();
   m_latency_statistics.add_sample(sec_diff);
 
-  m_received_count[id]++;
-  if (m_received_count[id] == m_num_subs) {
-    m_published_timestamps.erase(id);
-    m_received_count.erase(id);
+  m_received_count[seq_id]++;
+  if (m_received_count[seq_id] == m_num_subs) {
+    m_published_timestamps.erase(seq_id);
+    m_received_count.erase(seq_id);
   }
+
+  sequence_id prev = m_latest_received[event.sub_id];
+  m_num_lost_samples += (seq_id - prev - 1);
+  m_latest_received[event.sub_id] = seq_id;
 }
 
 void EventAggregator::system_measured(const EventSystemMeasured & event)
@@ -93,6 +102,9 @@ void EventAggregator::system_measured(const EventSystemMeasured & event)
 void EventAggregator::thread_function()
 {
   StatisticsTracker latency_statistics;
+  uint64_t num_sent_samples;
+  uint64_t num_received_samples;
+  uint64_t num_lost_samples;
   EventSystemMeasured event_system_measured;
 
   auto report_time = m_experiment_start_time;
@@ -107,6 +119,15 @@ void EventAggregator::thread_function()
       latency_statistics = m_latency_statistics;
       m_latency_statistics = StatisticsTracker();
 
+      num_sent_samples = m_num_sent_samples;
+      m_num_sent_samples = 0;
+
+      num_received_samples = m_num_received_samples;
+      m_num_received_samples = 0;
+
+      num_lost_samples = m_num_lost_samples;
+      m_num_lost_samples = 0;
+
       event_system_measured = m_event_system_measured;
     }
 
@@ -115,12 +136,12 @@ void EventAggregator::thread_function()
     auto result = std::make_shared<const AnalysisResult>(
       std::chrono::nanoseconds{now - m_experiment_start_time},
       std::chrono::nanoseconds{now - loop_start},
-      0, //sum_received_samples,
-      0, //sum_sent_samples,
-      0, //sum_lost_samples,
+      num_received_samples,
+      num_sent_samples,
+      num_lost_samples,
       0, //sum_data_received,
       latency_statistics,
-      StatisticsTracker(),
+      StatisticsTracker(),  // residuals
       StatisticsTracker(),
       event_system_measured.cpu_info
     );
