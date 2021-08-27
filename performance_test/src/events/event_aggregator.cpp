@@ -25,10 +25,11 @@ namespace performance_test
 {
 
 EventAggregator::EventAggregator(const std::vector<std::shared_ptr<Output>> & outputs)
-: m_experiment_start_time(perf_clock::now()),
+: m_experiment_start_time(PerfClock::now()),
   m_num_sent_samples(0),
   m_num_received_samples(0),
   m_num_lost_samples(0),
+  m_sum_data_received(0),
   m_outputs(outputs),
   m_run(true),
   m_thread(std::bind(&EventAggregator::thread_function, this))
@@ -58,10 +59,11 @@ void EventAggregator::register_pub(const EventRegisterPub &)
 {
 }
 
-void EventAggregator::register_sub(const EventRegisterSub &)
+void EventAggregator::register_sub(const EventRegisterSub & event)
 {
   std::lock_guard<std::mutex> guard(m_mutex);
   m_num_subs++;
+  m_data_sizes[event.sub_id] = event.data_size;
 }
 
 void EventAggregator::message_sent(const EventMessageSent & event)
@@ -77,10 +79,15 @@ void EventAggregator::message_received(const EventMessageReceived & event)
   std::lock_guard<std::mutex> guard(m_mutex);
   m_num_received_samples++;
 
-  auto diff_count = m_published_timestamps[seq_id] - event.timestamp;
-  auto diff_ns = std::chrono::nanoseconds{diff_count};
-  auto sec_diff = std::chrono::duration_cast<std::chrono::duration<double>>(diff_ns).count();
-  m_latency_statistics.add_sample(sec_diff);
+  // When the system gets busy, sometimes the events don't all show up
+  // exactly in order, even if the samples all were sent and received in order.
+  // Maybe cache stuff in begin/end transaction to address this?
+  if (m_published_timestamps.count(seq_id) != 0) {
+    auto diff_count = event.timestamp - m_published_timestamps[seq_id];
+    auto diff_ns = std::chrono::nanoseconds{diff_count};
+    auto sec_diff = std::chrono::duration_cast<std::chrono::duration<double>>(diff_ns).count();
+    m_latency_statistics.add_sample(sec_diff);
+  }
 
   m_received_count[seq_id]++;
   if (m_received_count[seq_id] == m_num_subs) {
@@ -89,8 +96,19 @@ void EventAggregator::message_received(const EventMessageReceived & event)
   }
 
   sequence_id prev = m_latest_received[event.sub_id];
+
+  // Ensure samples always arrive in the right order and no duplicates exist
+  if (seq_id <= prev) {
+    throw std::runtime_error(
+      "Data consistency violated. Received sample with not strictly higher id."
+      " Received sample id " + std::to_string(seq_id) +
+      " Prev. sample id : " + std::to_string(prev));
+  }
+
   m_num_lost_samples += (seq_id - prev - 1);
   m_latest_received[event.sub_id] = seq_id;
+
+  m_sum_data_received += m_data_sizes[event.sub_id];
 }
 
 void EventAggregator::system_measured(const EventSystemMeasured & event)
@@ -105,11 +123,12 @@ void EventAggregator::thread_function()
   uint64_t num_sent_samples;
   uint64_t num_received_samples;
   uint64_t num_lost_samples;
+  std::size_t sum_data_received;
   EventSystemMeasured event_system_measured;
 
   auto report_time = m_experiment_start_time;
   while (m_run) {
-    const auto loop_start = perf_clock::now();
+    const auto loop_start = PerfClock::now();
     report_time += std::chrono::seconds{1};
     std::this_thread::sleep_until(report_time);
 
@@ -128,10 +147,13 @@ void EventAggregator::thread_function()
       num_lost_samples = m_num_lost_samples;
       m_num_lost_samples = 0;
 
+      sum_data_received = m_sum_data_received;
+      m_sum_data_received = 0;
+
       event_system_measured = m_event_system_measured;
     }
 
-    auto now = perf_clock::now();
+    auto now = PerfClock::now();
 
     auto result = std::make_shared<const AnalysisResult>(
       std::chrono::nanoseconds{now - m_experiment_start_time},
@@ -139,11 +161,12 @@ void EventAggregator::thread_function()
       num_received_samples,
       num_sent_samples,
       num_lost_samples,
-      0, //sum_data_received,
+      sum_data_received,
       latency_statistics,
       StatisticsTracker(),  // residuals
       StatisticsTracker(),
-      event_system_measured.cpu_info
+      event_system_measured.cpu_info,
+      event_system_measured.sys_usage
     );
 
     for (const auto & output : m_outputs) {

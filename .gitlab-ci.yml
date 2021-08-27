@@ -244,6 +244,7 @@ test:
             --rate 2
             --keep-last
             --history-depth 10
+            -o none
             --max-runtime 15;
       done;
       '

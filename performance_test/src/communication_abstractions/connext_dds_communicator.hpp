@@ -104,8 +104,8 @@ public:
   using DataTypeSeq = typename DataType::Seq;
 
   /// Constructor which takes a reference \param lock to the lock to use.
-  RTIDDSCommunicator(SpinLock & lock, EventLogger & event_logger)
-  : Communicator(lock, event_logger),
+  explicit RTIDDSCommunicator(EventLogger & event_logger)
+  : Communicator(event_logger),
     m_participant(ResourceManager::get().connext_dds_participant()),
     m_datawriter(nullptr),
     m_datareader(nullptr),
@@ -115,14 +115,12 @@ public:
   }
 
   /**
-   * \brief Publishes the provided data.
+   * \brief Publishes a message of type DataType.
    *
    *  The first time this function is called it also creates the data writer.
    *  Further it updates all internal counters while running.
-   * \param data The data to publish.
-   * \param time The time to fill into the data field.
    */
-  void publish(std::int64_t time)
+  void publish()
   {
     if (m_datawriter == nullptr) {
       DDSPublisher * publisher;
@@ -152,11 +150,9 @@ public:
       throw std::runtime_error("This plugin does not support zero copy transfer");
     }
     DataType data;
-    lock();
-    data.time_ = time;
-    data.id_ = next_sample_id();
-    increment_sent();  // We increment before publishing so we don't have to lock twice.
-    unlock();
+    uint64_t sequence_id = next_sample_id();
+    data.id_ = sequence_id;
+    m_event_logger.message_sent(m_pub_id, sequence_id, PerfClock::timestamp());
     auto retcode = m_typed_datawriter->write(data, DDS_HANDLE_NIL);
     if (retcode != DDS_RETCODE_OK) {
       throw std::runtime_error("Failed to write to sample");
@@ -213,7 +209,7 @@ public:
       if (!m_condition_seq.ensure_length(2, 2)) {
         throw std::runtime_error("Error ensuring length of active_conditions_seq.");
       }
-      m_event_logger.register_sub(m_sub_id, m_ec.msg_name(), m_ec.topic_name());
+      m_event_logger.register_sub(m_sub_id, m_ec.msg_name(), m_ec.topic_name(), sizeof(DataType));
     }
 
     DDS_Duration_t wait_timeout = {15, 0};
@@ -223,26 +219,13 @@ public:
       m_data_seq, m_sample_info_seq, DDS_LENGTH_UNLIMITED,
       DDS_ANY_SAMPLE_STATE, DDS_ANY_VIEW_STATE, DDS_ANY_INSTANCE_STATE);
     if (ret == DDS_RETCODE_OK) {
-      lock();
       for (decltype(m_data_seq.length()) j = 0; j < m_data_seq.length(); ++j) {
         const auto & data = m_data_seq[j];
         if (m_sample_info_seq[j].valid_data) {
-          if (m_prev_timestamp >= data.time_) {
-            throw std::runtime_error(
-                    "Data consistency violated. Received sample with not strictly older timestamp. "
-                    "Time diff: " + std::to_string(
-                      data.time_ - m_prev_timestamp) +
-                    " Data Time: " +
-                    std::to_string(data.time_)
-            );
-          }
-          m_prev_timestamp = data.time_;
-          update_lost_samples_counter(data.id_);
-          add_latency_to_statistics(data.time_);
-          increment_received();
+          m_event_logger.message_received(
+            m_sub_id, data.id, PerfClock::timestamp());
         }
       }
-      unlock();
 
       if (m_ec.roundtrip_mode() == ExperimentConfiguration::RoundTripMode::RELAY) {
         throw std::runtime_error("Round trip mode is not implemented for Connext DDS!");
@@ -250,12 +233,6 @@ public:
 
       m_typed_datareader->return_loan(m_data_seq, m_sample_info_seq);
     }
-  }
-
-  /// Returns the data received in bytes.
-  std::size_t data_received()
-  {
-    return num_received_samples() * sizeof(DataType);
   }
 
 private:

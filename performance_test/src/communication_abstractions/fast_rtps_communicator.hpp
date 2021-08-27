@@ -130,8 +130,8 @@ public:
   using DataType = typename Topic::EprosimaType;
 
   /// Constructor which takes a reference \param lock to the lock to use.
-  FastRTPSCommunicator(SpinLock & lock, EventLogger & event_logger)
-  : Communicator(lock, event_logger),
+  explicit FastRTPSCommunicator(EventLogger & event_logger)
+  : Communicator(event_logger),
     m_publisher(nullptr),
     m_subscriber(nullptr),
     m_topic_type(new TopicType())
@@ -148,14 +148,12 @@ public:
   }
 
   /**
-   * \brief Publishes the provided data.
+   * \brief Publishes a message of type DataType.
    *
    *  The first time this function is called it also creates the data writer.
    *  Further it updates all internal counters while running.
-   * \param data The data to publish.
-   * \param time The time to fill into the data field.
    */
-  void publish(std::int64_t time)
+  void publish()
   {
     if (!m_publisher) {
       const FastRTPSQOSAdapter qos(m_ec.qos());
@@ -179,11 +177,10 @@ public:
       throw std::runtime_error("This plugin does not support zero copy transfer");
     }
     DataType data;
-    lock();
+    uint64_t sequence_id = next_sample_id();
     data.time_(time);
-    data.id_(next_sample_id());
-    increment_sent();  // We increment before publishing so we don't have to lock twice.
-    unlock();
+    data.id_(sequence_id);
+    m_event_logger.message_sent(m_pub_id, sequence_id, PerfClock::timestamp());
     m_publisher->write(static_cast<void *>(&data));
   }
   /**
@@ -211,42 +208,20 @@ public:
       rparam.qos.m_reliability.kind = qos.reliability();
       rparam.qos.m_durability.kind = qos.durability();
       m_subscriber = eprosima::fastrtps::Domain::createSubscriber(m_participant, rparam);
-      m_event_logger.register_sub(m_sub_id, m_ec.msg_name(), m_ec.topic_name());
+      m_event_logger.register_sub(m_sub_id, m_ec.msg_name(), m_ec.topic_name(), sizeof(DataType));
     }
 
     m_subscriber->waitForUnreadMessage();
-    lock();
     while (m_subscriber->takeNextData(static_cast<void *>(&m_data), &m_info)) {
       if (m_info.sampleKind == eprosima::fastrtps::rtps::ChangeKind_t::ALIVE) {
-        if (m_prev_timestamp >= m_data.time_()) {
-          throw std::runtime_error(
-                  "Data consistency violated. Received sample with not strictly "
-                  "older timestamp. Time diff: " + std::to_string(
-                    m_data.time_() - m_prev_timestamp) + " Data Time: " +
-                  std::to_string(m_data.time_())
-          );
-        }
-
-
         if (m_ec.roundtrip_mode() == ExperimentConfiguration::RoundTripMode::RELAY) {
-          unlock();
-          publish(m_data.time_());
-          lock();
+          publish();
         } else {
-          m_prev_timestamp = m_data.time_();
-          update_lost_samples_counter(m_data.id_());
-          add_latency_to_statistics(m_data.time_());
-          increment_received();
+          m_event_logger.message_received(
+            m_sub_id, m_data.id_(), PerfClock::timestamp());
         }
       }
     }
-    unlock();
-  }
-
-  /// Returns the data received in bytes.
-  std::size_t data_received()
-  {
-    return num_received_samples() * sizeof(DataType);
   }
 
 private:

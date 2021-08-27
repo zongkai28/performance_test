@@ -17,13 +17,36 @@
 
 #include <chrono>
 
+#if defined(QNX)
+#include <sys/neutrino.h>
+#include <inttypes.h>
+#endif
+
 namespace performance_test
 {
+
+class PerfClock {
+private:
 #ifdef QNX710
-using perf_clock = std::chrono::system_clock;
+  using perf_clock = std::chrono::system_clock;
 #else
-using perf_clock = std::chrono::steady_clock;
+  using perf_clock = std::chrono::steady_clock;
 #endif
+public:
+  using time_point = perf_clock::time_point;
+
+  static perf_clock::time_point now() {
+    return perf_clock::now();
+  }
+
+  static std::int64_t timestamp() {
+#if defined(QNX)
+    return static_cast<std::int64_t>(ClockCycles());
+#else
+    return perf_clock::now().time_since_epoch().count();
+#endif
+  }
+};
 }  // namespace performance_test
 
 #endif  // UTILITIES__PERF_CLOCK_HPP_

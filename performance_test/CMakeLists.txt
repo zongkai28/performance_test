@@ -256,7 +256,6 @@ set(sources
     src/experiment_configuration/external_info_storage.hpp
     src/experiment_configuration/external_info_storage.cpp
     src/utilities/cpu_info.hpp
-    src/utilities/spin_lock.hpp
     src/utilities/statistics_tracker.hpp
     src/utilities/cpu_usage_tracker.hpp
     src/utilities/qnx_res_usage.hpp

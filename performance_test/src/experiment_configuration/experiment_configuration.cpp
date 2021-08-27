@@ -83,6 +83,7 @@ std::ostream & operator<<(std::ostream & stream, const ExperimentConfiguration &
 ExperimentConfiguration::ExperimentConfiguration()
 : m_id(sole::uuid4().str()),
   m_is_setup(false),
+  m_output_event_db(false),
   m_dds_domain_id(),
   m_rate(),
   m_max_runtime(),
@@ -114,7 +115,7 @@ void ExperimentConfiguration::setup(int argc, char ** argv)
   try {
     TCLAP::CmdLine cmd("Apex.AI performance_test");
 
-    std::vector<std::string> allowedOutputs{"stdout", "csv", "json", "none"};
+    std::vector<std::string> allowedOutputs{"stdout", "csv", "json", "event-db", "none"};
     TCLAP::ValuesConstraint<std::string> allowedOutputConstraint(
       allowedOutputs);
     TCLAP::MultiArg<std::string> outputArg(
@@ -257,6 +258,8 @@ void ExperimentConfiguration::setup(int argc, char ** argv)
       } else if (output == "json") {
         m_configured_output_types.push_back(SupportedOutput::JSON);
         m_configured_outputs.push_back(std::make_shared<JsonOutput>());
+      } else if (output == "event-db") {
+        m_output_event_db = true;
       } else if (output == "none") {
         // do nothing
       } else {
@@ -624,6 +627,12 @@ ExperimentConfiguration::configured_outputs() const
 {
   check_setup();
   return m_configured_outputs;
+}
+
+bool ExperimentConfiguration::output_event_db() const
+{
+  check_setup();
+  return m_output_event_db;
 }
 
 std::string ExperimentConfiguration::json_logfile() const

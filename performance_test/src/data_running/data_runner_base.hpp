@@ -70,22 +70,6 @@ public:
     }
   }
   virtual ~DataRunnerBase() = default;
-  /// Sum of the received samples per second.
-  virtual uint64_t sum_received_samples() const = 0;
-  /// Sum of the lost samples per second.
-  virtual uint64_t sum_lost_samples() const = 0;
-  /// Sum of the data received in bytes per second.
-  virtual std::size_t sum_data_received() const = 0;
-  /// Sum of the samples sent per second.
-  virtual uint64_t sum_sent_samples() const = 0;
-
-  /// Statistics about the latency of received samples.
-  virtual StatisticsTracker latency_statistics() const = 0;
-  /// Statistics about how much time every loop iteration had left over.
-  virtual StatisticsTracker loop_time_reserve_statistics() const = 0;
-
-  /// Resets all the stored metrics and replaces them with current ones from the running threads.
-  virtual void sync_reset() = 0;
 
 protected:
   /// A reference to the experiment configuration.

@@ -38,7 +38,8 @@ AnalysisResult::AnalysisResult(
   StatisticsTracker latency,
   StatisticsTracker pub_loop_time_reserve,
   StatisticsTracker sub_loop_time_reserve,
-  const CpuInfo cpu_info
+  const CpuInfo cpu_info,
+  const rusage sys_usage
 )
 : m_experiment_start(experiment_start),
   m_loop_start(loop_start),
@@ -49,18 +50,9 @@ AnalysisResult::AnalysisResult(
   m_latency(latency),
   m_pub_loop_time_reserve(pub_loop_time_reserve),
   m_sub_loop_time_reserve(sub_loop_time_reserve),
-  m_cpu_info(cpu_info)
+  m_cpu_info(cpu_info),
+  m_sys_usage(sys_usage)
 {
-  const auto ret = getrusage(RUSAGE_SELF, &m_sys_usage);
-#if defined(QNX)
-  // QNX getrusage() max_rss does not give the correct value. Using a different method to get
-  // the RSS value and converting into KBytes
-  m_sys_usage.ru_maxrss =
-    (static_cast<int64_t>(performance_test::qnx_res::get_proc_rss_mem()) / 1024);
-#endif
-  if (ret != 0) {
-    throw std::runtime_error("Could not get system resource usage.");
-  }
   if (m_num_samples_received != static_cast<uint64_t>(m_latency.n())) {
     // TODO(andreas.pasternak): Commented out flaky assertion. Need to check if
     // it actually a bug.

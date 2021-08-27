@@ -56,7 +56,8 @@ const auto SQL_INIT_DB_SCHEMA =
   "CREATE TABLE subscribers("
   "  id TEXT PRIMARY KEY,"
   "  msg_type TEXT,"
-  "  topic TEXT"
+  "  topic TEXT,"
+  "  data_size INT"
   ");"
   "DROP TABLE IF EXISTS messages_sent;"
   "CREATE TABLE messages_sent("
@@ -106,6 +107,14 @@ const auto SQL_INSERT_SYSTEM_MEASURED =
   "  ru_nivcsw,"
   "  timestamp"
   ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+  
+int sqlite3_bind_timeval(sqlite3_stmt * stmt, int idx, const timeval & val)
+{
+  std::chrono::nanoseconds ns =
+    std::chrono::seconds(val.tv_sec) +
+    std::chrono::microseconds(val.tv_usec);
+  return sqlite3_bind_int64(stmt, idx, ns.count());
+}
 }  // namespace
 
 namespace performance_test
@@ -161,6 +170,7 @@ void EventDB::register_sub(const EventRegisterSub & event)
   sqlite3_bind_text(m_stmt_register_sub, 1, event.sub_id.c_str(), -1, SQLITE_STATIC);
   sqlite3_bind_text(m_stmt_register_sub, 2, event.msg_type.c_str(), -1, SQLITE_STATIC);
   sqlite3_bind_text(m_stmt_register_sub, 3, event.topic.c_str(), -1, SQLITE_STATIC);
+  sqlite3_bind_int64(m_stmt_register_sub, 4, static_cast<std::int64_t>(event.data_size));
   sqlite3_step(m_stmt_register_sub);
 }
 
@@ -181,17 +191,6 @@ void EventDB::message_received(const EventMessageReceived & event)
   sqlite3_bind_int64(m_stmt_message_received, 3, event.timestamp);
   sqlite3_step(m_stmt_message_received);
 }
-
-namespace
-{
-int sqlite3_bind_timeval(sqlite3_stmt * stmt, int idx, const timeval & val)
-{
-  std::chrono::nanoseconds ns =
-    std::chrono::seconds(val.tv_sec) +
-    std::chrono::microseconds(val.tv_usec);
-  return sqlite3_bind_int64(stmt, idx, ns.count());
-}
-}  // namespace
 
 void EventDB::system_measured(const EventSystemMeasured & event)
 {

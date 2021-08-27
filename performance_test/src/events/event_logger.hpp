@@ -38,7 +38,10 @@ public:
   void register_pub(
     const std::string & pub_id, const std::string & msg_type, const std::string & topic);
   void register_sub(
-    const std::string & sub_id, const std::string & msg_type, const std::string & topic);
+    const std::string & sub_id,
+    const std::string & msg_type,
+    const std::string & topic,
+    std::size_t data_size);
   void message_sent(
     const std::string & pub_id, std::uint64_t sequence_id, std::int64_t timestamp);
   void message_received(

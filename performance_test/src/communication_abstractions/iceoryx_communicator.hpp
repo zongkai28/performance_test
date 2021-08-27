@@ -38,20 +38,18 @@ public:
   using DataType = typename Msg::RosType;
 
   /// Constructor which takes a reference \param lock to the lock to use.
-  IceoryxCommunicator(SpinLock & lock, EventLogger & event_logger)
-  : Communicator(lock, event_logger)
+  explicit IceoryxCommunicator(EventLogger & event_logger)
+  : Communicator(event_logger)
   {
   }
 
   /**
-   * \brief Publishes the provided data.
+   * \brief Publishes a message of type DataType.
    *
    *  The first time this function is called it also creates the publisher.
    *  Further it updates all internal counters while running.
-   * \param data The data to publish.
-   * \param time The time to fill into the data field.
    */
-  void publish(std::int64_t time)
+  void publish()
   {
     if (m_publisher == nullptr) {
       ResourceManager::get().init_iceoryx_runtime();
@@ -66,11 +64,9 @@ public:
       m_publisher->loan()
       .and_then(
         [&](auto & sample) {
-          lock();
-          sample->time = time;
-          sample->id = next_sample_id();
-          increment_sent();  // We increment before publishing so we don't have to lock twice.
-          unlock();
+          uint64_t sequence_id = next_sample_id();
+          sample->id = sequence_id;
+          m_event_logger.message_sent(m_pub_id, sequence_id, PerfClock::timestamp());
           sample.publish();
         })
       .or_else(
@@ -79,11 +75,9 @@ public:
         });
     } else {
       DataType data;
-      lock();
-      data.time = time;
-      data.id = next_sample_id();
-      increment_sent();  // We increment before publishing so we don't have to lock twice.
-      unlock();
+      uint64_t sequence_id = next_sample_id();
+      data.id = sequence_id;
+      m_event_logger.message_sent(m_pub_id, sequence_id, PerfClock::timestamp());
       m_publisher->publishCopyOf(data)
       .or_else(
         [](auto &) {
@@ -125,28 +119,19 @@ public:
           std::cerr << "unable to attach Event DATA_RECEIVED to iceoryx Waitset" << std::endl;
           std::exit(EXIT_FAILURE);
         });
-      m_event_logger.register_sub(m_sub_id, m_ec.msg_name(), m_ec.topic_name());
+      m_event_logger.register_sub(m_sub_id, m_ec.msg_name(), m_ec.topic_name(), sizeof(DataType));
     }
 
     if (m_subscriber->getSubscriptionState() == iox::SubscribeState::SUBSCRIBED) {
       auto eventVector = m_waitset->timedWait(iox::units::Duration::fromSeconds(15));
       for (auto & event : eventVector) {
         if (event->doesOriginateFrom(m_subscriber.get())) {
-          lock();
           while (m_subscriber->hasData()) {
             m_subscriber->take()
             .and_then(
               [this](auto & data) {
-                if (m_prev_timestamp >= data->time) {
-                  throw std::runtime_error(
-                    "Data consistency violated. Received sample with not strictly older timestamp. "
-                    "Time diff: " + std::to_string(data->time - m_prev_timestamp) +
-                    " Data Time: " + std::to_string(data->time));
-                }
-                m_prev_timestamp = data->time;
-                update_lost_samples_counter(data->id);
-                add_latency_to_statistics(data->time);
-                increment_received();
+                m_event_logger.message_received(
+                  m_sub_id, data->id, PerfClock::timestamp());
               })
             .or_else(
               [](auto & result) {
@@ -155,18 +140,11 @@ public:
                 }
               });
           }
-          unlock();
         }
       }
     } else {
       std::cout << "Not subscribed!" << std::endl;
     }
-  }
-
-  /// Returns the data received in bytes.
-  std::size_t data_received()
-  {
-    return num_received_samples() * sizeof(DataType);
   }
 
 private:

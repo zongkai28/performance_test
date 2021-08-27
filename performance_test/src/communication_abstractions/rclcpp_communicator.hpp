@@ -86,22 +86,19 @@ public:
   using DataType = typename Msg::RosType;
 
   /// Constructor which takes a reference \param lock to the lock to use.
-  RclcppCommunicator(SpinLock & lock, EventLogger & event_logger)
-  : Communicator(lock, event_logger),
+  explicit RclcppCommunicator(EventLogger & event_logger)
+  : Communicator(event_logger),
     m_node(ResourceManager::get().rclcpp_node()),
     m_ROS2QOSAdapter(ROS2QOSAdapter(m_ec.qos()).get()),
     m_data_copy(std::make_unique<DataType>()) {}
 
   /**
-   * \brief Publishes the provided data.
+   * \brief Publishes a message of type DataType.
    *
    *  The first time this function is called it also creates the publisher.
    *  Further it updates all internal counters while running.
-   *
-   * \param data The data to publish.
-   * \param time The time to fill into the data field.
    */
-  void publish(std::int64_t time)
+  void publish()
   {
     if (!m_publisher) {
       auto ros2QOSAdapter = m_ROS2QOSAdapter;
@@ -121,35 +118,21 @@ public:
         throw std::runtime_error("RMW implementation does not support zero copy!");
       }
       auto borrowed_message{m_publisher->borrow_loaned_message()};
-      lock();
       uint64_t sequence_id = next_sample_id();
-      m_event_logger.message_sent(m_pub_id, sequence_id, time);
-      borrowed_message.get().time = time;
       borrowed_message.get().id = sequence_id;
-      increment_sent();  // We increment before publishing so we don't have to lock twice.
-      unlock();
+      m_event_logger.message_sent(m_pub_id, sequence_id, PerfClock::timestamp());
       m_publisher->publish(std::move(borrowed_message));
     } else {
       DataType data;
-      lock();
       uint64_t sequence_id = next_sample_id();
-      m_event_logger.message_sent(m_pub_id, sequence_id, time);
-      data.time = time;
       data.id = sequence_id;
-      increment_sent();  // We increment before publishing so we don't have to lock twice.
-      unlock();
+      m_event_logger.message_sent(m_pub_id, sequence_id, PerfClock::timestamp());
       m_publisher->publish(data);
     }
   }
 
   /// Reads received data from ROS 2 using callbacks
   virtual void update_subscription() = 0;
-
-  /// Returns the accumulated data size in bytes.
-  std::size_t data_received()
-  {
-    return num_received_samples() * sizeof(DataType);
-  }
 
 protected:
   std::shared_ptr<rclcpp::Node> m_node;
@@ -175,22 +158,11 @@ protected:
       std::is_same<DataType,
       typename std::remove_cv<typename std::remove_reference<T>::type>::type>::value,
       "Parameter type passed to callback() does not match");
-    if (m_prev_timestamp >= data.time) {
-      throw std::runtime_error(
-              "Data consistency violated. Received sample with not strictly older timestamp");
-    }
 
     if (m_ec.roundtrip_mode() == ExperimentConfiguration::RoundTripMode::RELAY) {
-      publish(data.time);
+      publish();
     } else {
-      lock();
-      m_event_logger.message_received(
-        m_sub_id, data.id, perf_clock::now().time_since_epoch().count());
-      m_prev_timestamp = data.time;
-      update_lost_samples_counter(data.id);
-      add_latency_to_statistics(data.time);
-      increment_received();
-      unlock();
+      m_event_logger.message_received(m_sub_id, data.id, PerfClock::timestamp());
     }
   }
 

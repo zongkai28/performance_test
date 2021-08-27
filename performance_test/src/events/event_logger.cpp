@@ -48,9 +48,12 @@ void EventLogger::register_pub(
 }
 
 void EventLogger::register_sub(
-  const std::string & sub_id, const std::string & msg_type, const std::string & topic)
+  const std::string & sub_id,
+  const std::string & msg_type,
+  const std::string & topic,
+  std::size_t data_size)
 {
-  m_q_register_sub.enqueue(EventRegisterSub{sub_id, msg_type, topic});
+  m_q_register_sub.enqueue(EventRegisterSub{sub_id, msg_type, topic, data_size});
 }
 
 void EventLogger::message_sent(
@@ -123,7 +126,9 @@ std::vector<std::shared_ptr<performance_test::EventSink>>
 EventLogger::create_event_sinks(const ExperimentConfiguration & ec) {
   std::vector<std::shared_ptr<EventSink>> sinks;
   
-  sinks.push_back(std::make_shared<EventDB>(sole::uuid4().str() + ".db"));
+  if (ec.output_event_db()) {
+    sinks.push_back(std::make_shared<EventDB>(sole::uuid4().str() + ".db"));
+  }
   
   auto outputs = ec.configured_outputs();
   if (!outputs.empty()) {

@@ -56,7 +56,8 @@ public:
     StatisticsTracker latency,
     StatisticsTracker pub_loop_time_reserve,
     StatisticsTracker sub_loop_time_reserve,
-    const CpuInfo cpu_info
+    const CpuInfo cpu_info,
+    const rusage sys_usage
   );
   /**
    * \brief Returns a header for a CVS file containing the analysis result data
@@ -84,8 +85,8 @@ public:
   StatisticsTracker m_latency;
   StatisticsTracker m_pub_loop_time_reserve;
   StatisticsTracker m_sub_loop_time_reserve;
-  rusage m_sys_usage;
   const CpuInfo m_cpu_info;
+  rusage m_sys_usage;
 };
 
 }  // namespace performance_test

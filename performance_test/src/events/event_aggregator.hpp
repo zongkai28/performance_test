@@ -50,11 +50,12 @@ private:
   typedef std::string pub_id;
   typedef std::string sub_id;
 
-  const perf_clock::time_point m_experiment_start_time;
+  const PerfClock::time_point m_experiment_start_time;
   StatisticsTracker m_latency_statistics;
   uint64_t m_num_sent_samples;
   uint64_t m_num_received_samples;
   uint64_t m_num_lost_samples;
+  std::size_t m_sum_data_received;
 
   // TODO(erik.snider) this design does not handle more than 1 pub,
   // or more than one topic. I think that changinge the keys to a
@@ -63,6 +64,7 @@ private:
   // in the message.
   std::map<sequence_id, timestamp> m_published_timestamps;
   std::map<sequence_id, int> m_received_count;
+  std::map<sub_id, std::size_t> m_data_sizes;
   std::map<sub_id, sequence_id> m_latest_received;
 
   int m_num_subs;

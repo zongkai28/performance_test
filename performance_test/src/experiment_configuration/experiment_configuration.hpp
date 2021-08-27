@@ -162,6 +162,7 @@ public:
   /// The configured outputs types.
   const std::vector<ExperimentConfiguration::SupportedOutput> & configured_output_types() const;
   const std::vector<std::shared_ptr<Output>> & configured_outputs() const;
+  bool output_event_db() const;
   /// \return Returns true if the user requested the application to exit.
   bool exit_requested() const;
   ExternalInfoStorage get_external_info() const
@@ -183,6 +184,7 @@ private:
   std::string m_csv_logfile;
   std::vector<SupportedOutput> m_configured_output_types{};
   std::vector<std::shared_ptr<Output>> m_configured_outputs{};
+  bool m_output_event_db;
   CommunicationMean m_com_mean;
   uint32_t m_dds_domain_id;
   QOSAbstraction m_qos;

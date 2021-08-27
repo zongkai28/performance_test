@@ -32,7 +32,6 @@ namespace performance_test
 
 AnalyzeRunner::AnalyzeRunner()
 : m_ec(ExperimentConfiguration::get()),
-  m_outputs(ExperimentConfiguration::get().configured_outputs()),
   m_is_first_entry(true),
   m_event_logger(ExperimentConfiguration::get())
 {
@@ -48,20 +47,11 @@ AnalyzeRunner::AnalyzeRunner()
 
 void AnalyzeRunner::run()
 {
-  // for (const auto & output : m_outputs) {
-  //   output->open();
-  // }
-
-  const auto experiment_start = perf_clock::now();
+  const auto experiment_start = PerfClock::now();
 
   while (!check_exit(experiment_start)) {
-    const auto loop_start = perf_clock::now();
-
+    measure_system();
     sleep(1);
-
-    std::for_each(m_pub_runners.begin(), m_pub_runners.end(), [](auto & a) {a->sync_reset();});
-    std::for_each(m_sub_runners.begin(), m_sub_runners.end(), [](auto & a) {a->sync_reset();});
-
 #if PERFORMANCE_TEST_RT_ENABLED
     /// If there are custom RT settings and this is the first loop, set the post
     /// RT init settings
@@ -70,76 +60,10 @@ void AnalyzeRunner::run()
       m_is_first_entry = false;
     }
 #endif
-
-    auto now = perf_clock::now();
-    auto loop_diff_start = now - loop_start;
-    auto experiment_diff_start = now - experiment_start;
-    auto result = analyze(loop_diff_start, experiment_diff_start);
-    // for (const auto & output : m_outputs) {
-    //   output->update(result);
-    // }
   }
-
-  // for (const auto & output : m_outputs) {
-  //   output->close();
-  // }
 }
 
-std::shared_ptr<const AnalysisResult> AnalyzeRunner::analyze(
-  const std::chrono::nanoseconds loop_diff_start,
-  const std::chrono::nanoseconds experiment_diff_start)
-{
-  std::vector<StatisticsTracker> latency_vec(m_sub_runners.size());
-  std::transform(
-    m_sub_runners.begin(), m_sub_runners.end(), latency_vec.begin(),
-    [](const auto & a) {return a->latency_statistics();});
-
-  std::vector<StatisticsTracker> ltr_pub_vec(m_pub_runners.size());
-  std::transform(
-    m_pub_runners.begin(), m_pub_runners.end(), ltr_pub_vec.begin(),
-    [](const auto & a) {return a->loop_time_reserve_statistics();});
-
-  std::vector<StatisticsTracker> ltr_sub_vec(m_sub_runners.size());
-  std::transform(
-    m_sub_runners.begin(), m_sub_runners.end(), ltr_sub_vec.begin(),
-    [](const auto & a) {return a->loop_time_reserve_statistics();});
-
-  uint64_t sum_received_samples = 0;
-  for (auto e : m_sub_runners) {
-    sum_received_samples += e->sum_received_samples();
-  }
-
-  uint64_t sum_sent_samples = 0;
-  for (auto e : m_pub_runners) {
-    sum_sent_samples += e->sum_sent_samples();
-  }
-
-  uint64_t sum_lost_samples = 0;
-  for (auto e : m_sub_runners) {
-    sum_lost_samples += e->sum_lost_samples();
-  }
-
-  uint64_t sum_data_received = 0;
-  for (auto e : m_sub_runners) {
-    sum_data_received += e->sum_data_received();
-  }
-
-  auto result = std::make_shared<const AnalysisResult>(
-    experiment_diff_start,
-    loop_diff_start,
-    sum_received_samples,
-    sum_sent_samples,
-    sum_lost_samples,
-    sum_data_received,
-    StatisticsTracker(latency_vec),
-    StatisticsTracker(ltr_pub_vec),
-    StatisticsTracker(ltr_sub_vec),
-    cpu_usage_tracker.get_cpu_usage()
-  );
-  return result;
-}
-
-bool AnalyzeRunner::check_exit(perf_clock::time_point experiment_start) const
+bool AnalyzeRunner::check_exit(PerfClock::time_point experiment_start) const
 {
   if (m_ec.exit_requested()) {
     std::cout << "Caught signal. Exiting." << std::endl;
@@ -152,7 +76,7 @@ bool AnalyzeRunner::check_exit(perf_clock::time_point experiment_start) const
   }
 
   const double runtime_sec =
-    std::chrono::duration<double>(perf_clock::now() - experiment_start).count();
+    std::chrono::duration<double>(PerfClock::now() - experiment_start).count();
 
   if (runtime_sec > static_cast<double>(m_ec.max_runtime())) {
     std::cout << "Maximum runtime reached. Exiting." << std::endl;
@@ -160,6 +84,23 @@ bool AnalyzeRunner::check_exit(perf_clock::time_point experiment_start) const
   } else {
     return false;
   }
+}
+
+void AnalyzeRunner::measure_system() {
+  rusage sys_usage;
+  const auto ret = getrusage(RUSAGE_SELF, &sys_usage);
+#if defined(QNX)
+  // QNX getrusage() max_rss does not give the correct value. Using a different method to get
+  // the RSS value and converting into KBytes
+  sys_usage.ru_maxrss =
+    (static_cast<int64_t>(performance_test::qnx_res::get_proc_rss_mem()) / 1024);
+#endif
+  if (ret != 0) {
+    throw std::runtime_error("Could not get system resource usage.");
+  }
+
+  m_event_logger.system_measured(
+    cpu_usage_tracker.get_cpu_usage(), sys_usage, PerfClock::timestamp());
 }
 
 }  // namespace performance_test

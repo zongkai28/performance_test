@@ -36,8 +36,8 @@ public:
   using DataType = typename RclcppCommunicator<Msg>::DataType;
 
   /// Constructor which takes a reference \param lock to the lock to use.
-  RclcppCallbackCommunicator(SpinLock & lock, EventLogger & event_logger)
-  : RclcppCommunicator<Msg>(lock, event_logger),
+  explicit RclcppCallbackCommunicator(EventLogger & event_logger)
+  : RclcppCommunicator<Msg>(event_logger),
     m_subscription(nullptr)
   {
     m_executor.add_node(this->m_node);
@@ -58,7 +58,7 @@ public:
       }
 #endif
       this->m_event_logger.register_sub(
-        this->m_sub_id, this->m_ec.msg_name(), this->m_ec.topic_name());
+        this->m_sub_id, this->m_ec.msg_name(), this->m_ec.topic_name(), sizeof(DataType));
     }
     m_executor.spin_once(std::chrono::milliseconds(100));
   }

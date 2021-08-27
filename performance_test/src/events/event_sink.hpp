@@ -35,6 +35,7 @@ struct EventRegisterSub {
   std::string sub_id;
   std::string msg_type;
   std::string topic;
+  std::size_t data_size;
 };
 
 struct EventMessageSent {

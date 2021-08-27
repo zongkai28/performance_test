@@ -26,6 +26,7 @@
 #include "../outputs/output.hpp"
 #include "../utilities/cpu_usage_tracker.hpp"
 #include "../events/event_logger.hpp"
+#include "../utilities/perf_clock.hpp"
 
 namespace performance_test
 {
@@ -47,29 +48,18 @@ public:
 
 private:
   /**
-   * \brief Analyzes and logs the state of the experiment.
-   * \param loop_diff_start
-   * \param experiment_diff_start
-   * \return The analysis result
-   */
-
-  std::shared_ptr<const AnalysisResult> analyze(
-    const std::chrono::nanoseconds loop_diff_start,
-    const std::chrono::nanoseconds experiment_diff_start);
-
-  /**
    * \brief Checks if the experiment is finished.
    * \param experiment_start The start of the experiment.
    * \return Is the experiment finnished
    */
-#ifdef QNX710
-  bool check_exit(std::chrono::system_clock::time_point experiment_start) const;
-#else
-  bool check_exit(std::chrono::steady_clock::time_point experiment_start) const;
-#endif
-
+  bool check_exit(PerfClock::time_point experiment_start) const;
+  
+  /**
+   * \brief Measure CPU and RAM usage, and report to m_event_logger.
+   */
+  void measure_system();
+  
   const ExperimentConfiguration & m_ec;
-  std::vector<std::shared_ptr<Output>> m_outputs;
   std::vector<std::shared_ptr<DataRunnerBase>> m_pub_runners;
   std::vector<std::shared_ptr<DataRunnerBase>> m_sub_runners;
   mutable bool m_is_first_entry;

@@ -36,61 +36,14 @@ class Communicator
 {
 public:
   /// Constructor which takes a reference \param lock to the lock to use.
-  explicit Communicator(SpinLock & lock, EventLogger & event_logger);
-
-  /// Number of received samples.
-  std::uint64_t num_received_samples() const;
-  /// Number of sent samples.
-  std::uint64_t num_sent_samples() const;
-  /// Number of lost samples.
-  std::uint64_t num_lost_samples() const;
-  /**
-   * \brief Adds a sample timestamp to the latency statistics.
-   * \param sample_timestamp The timestamp the sample was sent.
-   */
-  void add_latency_to_statistics(const std::int64_t sample_timestamp);
-  /// Returns stored latency statistics.
-  StatisticsTracker latency_statistics() const;
-  /// Resets all internal counters.
-  void reset();
+  explicit Communicator(EventLogger & event_logger);
 
 protected:
   /// Get the the id for the next sample to publish.
   std::uint64_t next_sample_id();
-  /**
-   * \brief Increment the number of received samples.
-   * \param increment Optional different increment step.
-   */
-  void increment_received(const std::uint64_t & increment = 1);
-  /**
-   * \brief Increment the number of sent samples.
-   * \param increment Optional different increment step.
-   */
-  void increment_sent(const std::uint64_t & increment = 1);
-  /**
-   * \brief Given a sample id this function check if and how many samples were lost and
-   *        updates counters accordingly.
-   * \param sample_id The sample id to check.
-   */
-  void update_lost_samples_counter(const std::uint64_t sample_id);
-  /// Returns the last sample id received.
-  std::uint64_t prev_sample_id() const;
 
   /// The experiment configuration.
   const ExperimentConfiguration & m_ec;
-  /// The time the last sample was received [ns since epoc].
-  std::int64_t m_prev_timestamp;
-
-  /// Lock the spinlock.
-  void lock();
-  /// Unlock the spinlock.
-  void unlock();
-
-  /// Returns the lock.
-  auto & get_lock()
-  {
-    return m_lock;
-  }
 
   EventLogger & m_event_logger;
   const std::string m_pub_id;
@@ -98,16 +51,6 @@ protected:
 
 private:
   std::uint64_t m_prev_sample_id;
-  std::uint64_t m_num_lost_samples;
-  std::uint64_t m_received_sample_counter;
-  std::uint64_t m_sent_sample_counter;
-#if defined(QNX)
-  std::uint64_t m_cps;
-#endif
-
-  StatisticsTracker m_latency;
-
-  SpinLock & m_lock;
 };
 
 }  // namespace performance_test

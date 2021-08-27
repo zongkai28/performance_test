@@ -40,8 +40,8 @@ public:
   using DataType = typename RclcppCommunicator<Msg>::DataType;
 
   /// Constructor which takes a reference \param lock to the lock to use.
-  ApexOSPollingSubscriptionCommunicator(SpinLock & lock, EventLogger & event_logger)
-  : RclcppCommunicator<Msg>(lock, event_logger),
+  explicit ApexOSPollingSubscriptionCommunicator(EventLogger & event_logger)
+  : RclcppCommunicator<Msg>(event_logger),
     m_polling_subscription(nullptr) {}
 
   /// Reads received data from ROS 2 using waitsets
@@ -57,7 +57,7 @@ public:
       }
       m_waitset = std::make_unique<rclcpp::Waitset<>>(m_polling_subscription);
       this->m_event_logger.register_sub(
-        this->m_sub_id, this->m_ec.msg_name(), this->m_ec.topic_name());
+        this->m_sub_id, this->m_ec.msg_name(), this->m_ec.topic_name(), sizeof(DataType));
     }
     const auto wait_ret = m_waitset->wait(std::chrono::milliseconds(100), false);
     if (wait_ret.any()) {

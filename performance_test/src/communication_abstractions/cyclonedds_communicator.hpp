@@ -141,8 +141,8 @@ public:
   using DataType = typename Msg::CycloneDDSType;
 
   /// Constructor which takes a reference \param lock to the lock to use.
-  CycloneDDSCommunicator(SpinLock & lock, EventLogger & event_logger)
-  : Communicator(lock, event_logger),
+  explicit CycloneDDSCommunicator(EventLogger & event_logger)
+  : Communicator(event_logger),
     m_participant(ResourceManager::get().cyclonedds_participant()),
     m_datawriter(0),
     m_datareader(0)
@@ -150,14 +150,12 @@ public:
   }
 
   /**
-   * \brief Publishes the provided data.
+   * \brief Publishes a message of type DataType.
    *
    *  The first time this function is called it also creates the data writer.
    *  Further it updates all internal counters while running.
-   * \param data The data to publish.
-   * \param time The time to fill into the data field.
    */
-  void publish(std::int64_t time)
+  void publish()
   {
     if (m_datawriter == 0) {
       dds_qos_t * dw_qos = dds_create_qos();
@@ -183,11 +181,9 @@ public:
         throw std::runtime_error("Failed to obtain a loaned sample " + std::to_string(status));
       }
       DataType * sample = static_cast<DataType *>(loaned_sample);
-      lock();
-      sample->time_ = time;
-      sample->id_ = next_sample_id();
-      increment_sent();  // We increment before publishing so we don't have to lock twice.
-      unlock();
+      uint64_t sequence_id = next_sample_id();
+      sample->id_ = sequence_id;
+      m_event_logger.message_sent(m_pub_id, sequence_id, PerfClock::timestamp());
       status = dds_write(m_datawriter, sample);
       if (status == DDS_RETCODE_UNSUPPORTED) {
         throw std::runtime_error("DDS write unsupported");
@@ -196,11 +192,9 @@ public:
       }
     } else {
       DataType data;
-      lock();
-      data.time_ = time;
-      data.id_ = next_sample_id();
-      increment_sent();  // We increment before publishing so we don't have to lock twice.
-      unlock();
+      uint64_t sequence_id = next_sample_id();
+      data.id_ = sequence_id;
+      m_event_logger.message_sent(m_pub_id, sequence_id, PerfClock::timestamp());
       if (dds_write(m_datawriter, static_cast<void *>(&data)) < 0) {
         throw std::runtime_error("Failed to write to sample");
       }
@@ -241,7 +235,7 @@ public:
       if (dds_waitset_attach(m_waitset, m_datareader, 1) < 0) {
         throw std::runtime_error("failed to attach waitset");
       }
-      m_event_logger.register_sub(m_sub_id, m_ec.msg_name(), m_ec.topic_name());
+      m_event_logger.register_sub(m_sub_id, m_ec.msg_name(), m_ec.topic_name(), sizeof(DataType));
     }
 
     dds_waitset_wait(m_waitset, nullptr, 0, DDS_SECS(15));
@@ -250,36 +244,17 @@ public:
     dds_sample_info_t si;
     int32_t n;
     while ((n = dds_take(m_datareader, &untyped, &si, 1, 1)) > 0) {
-      lock();
       const DataType * data = static_cast<DataType *>(untyped);
       if (si.valid_data) {
-        if (m_prev_timestamp >= data->time_) {
-          throw std::runtime_error(
-                  "Data consistency violated. Received sample with not strictly older timestamp. "
-                  "Time diff: " + std::to_string(data->time_ - m_prev_timestamp) +
-                  " Data Time: " + std::to_string(data->time_));
-        }
         if (m_ec.roundtrip_mode() == ExperimentConfiguration::RoundTripMode::RELAY) {
-          unlock();
-          publish(data->time_);
-          lock();
+          publish();
         } else {
-          m_prev_timestamp = data->time_;
-          update_lost_samples_counter(data->id_);
-          add_latency_to_statistics(data->time_);
-          increment_received();
+          m_event_logger.message_received(
+            m_sub_id, data->id_, PerfClock::timestamp());
         }
       }
-      unlock();
-
       dds_return_loan(m_datareader, &untyped, n);
     }
-  }
-
-  /// Returns the data received in bytes.
-  std::size_t data_received()
-  {
-    return num_received_samples() * sizeof(DataType);
   }
 
 private:
