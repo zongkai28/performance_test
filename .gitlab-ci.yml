@@ -169,6 +169,60 @@ build_ros1:
     - rm performance_test_ros1_publisher/COLCON_IGNORE  # ROS1 packages are ignored by default
     - colcon build  # Should build msgs and publisher
 
+build_on_windows:
+  stage: build
+  tags:
+    - shared-windows
+  script:
+    # Load the environment variables from vcvars64.bat
+    # See https://stackoverflow.com/a/2124759
+    - '
+      $cmd = "`"\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvars64.bat`" & set";
+      cmd /c $cmd |
+      foreach {
+        if ($_ -match "=") {
+          $v = $_.split("="); set-item -force -path "ENV:\$($v[0])"  -value "$($v[1])"
+        }
+      }
+      '
+    # Install prerequisite chocolatey packages
+    - choco install -y --no-progress vcredist2013 vcredist140 openssl cmake
+    - curl.exe -L -o asio.1.12.1.nupkg https://github.com/ros2/choco-packages/releases/download/2020-02-24/asio.1.12.1.nupkg
+    - curl.exe -L -o bullet.2.89.0.nupkg https://github.com/ros2/choco-packages/releases/download/2020-02-24/bullet.2.89.0.nupkg
+    - curl.exe -L -o cunit.2.1.3.nupkg https://github.com/ros2/choco-packages/releases/download/2020-02-24/cunit.2.1.3.nupkg
+    - curl.exe -L -o eigen-3.3.4.nupkg https://github.com/ros2/choco-packages/releases/download/2020-02-24/eigen.3.3.4.nupkg
+    - curl.exe -L -o tinyxml-usestl.2.6.2.nupkg https://github.com/ros2/choco-packages/releases/download/2020-02-24/tinyxml-usestl.2.6.2.nupkg
+    - curl.exe -L -o tinyxml2.6.0.0.nupkg https://github.com/ros2/choco-packages/releases/download/2020-02-24/tinyxml2.6.0.0.nupkg
+    - curl.exe -L -o log4cxx.0.10.0.nupkg https://github.com/ros2/choco-packages/releases/download/2020-02-24/log4cxx.0.10.0.nupkg
+    - choco install -y --no-progress -s . asio cunit eigen tinyxml-usestl tinyxml2 log4cxx bullet
+    - del *.nupkg
+    # Install python and prerequisite packages
+    - choco install -y --no-progress python --version 3.8.3
+    - $Env:Path += ";C:\Python38\Scripts"
+    - py -m pip install --upgrade pip
+    - pip install -U catkin_pkg cryptography empy ifcfg importlib-metadata lark-parser lxml matplotlib netifaces numpy opencv-python PyQt5 pillow pip psutil pycairo pydot pyparsing pyyaml rosdistro setuptools
+    - pip install -U colcon-common-extensions coverage flake8 flake8-blind-except flake8-builtins flake8-class-newline flake8-comprehensions flake8-deprecated flake8-docstrings flake8-import-order flake8-quotes mock mypy==0.761 pep8 pydocstyle pytest pytest-mock vcstool
+    # Install ROS 2
+    - curl.exe -L -o ros2.zip https://ci.ros2.org/view/packaging/job/packaging_windows/lastSuccessfulBuild/artifact/ws/ros2-package-windows-AMD64.zip
+    - tar -xf ros2.zip
+    - del ros2.zip
+    # This is a workaround for this issue: 
+    # https://githubmemory.com/repo/ros2/rclcpp/issues/1688
+    - md \ci\ws\install\include
+    # Do not try to rebuild ROS 2
+    - echo $null >> ros2-windows/COLCON_IGNORE
+    # Build perf_test
+    - ros2-windows/setup.ps1
+    - colcon build
+    # Run perf_test
+    - install/setup.ps1
+    - ros2 run performance_test perf_test --max-runtime 10 -o csv -l log/win.csv
+  artifacts:
+    expire_in: 1 day
+    when: always
+    paths:
+      - log
+
 test:
   stage: test
   image: osrf/ros:rolling-desktop
