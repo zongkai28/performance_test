@@ -125,13 +125,12 @@ public:
         throw std::runtime_error("failed to create datawriter");
       }
     }
-    DataType data;
     lock();
-    data.time_ = time;
-    data.id_ = next_sample_id();
+    m_data.time_ = time;
+    m_data.id_ = next_sample_id();
     increment_sent();  // We increment before publishing so we don't have to lock twice.
     unlock();
-    if (dds_write(m_datawriter, static_cast<void *>(&data)) < 0) {
+    if (dds_write(m_datawriter, static_cast<void *>(&m_data)) < 0) {
       throw std::runtime_error("Failed to write to sample");
     }
   }
@@ -226,6 +225,8 @@ private:
 
   dds_entity_t m_waitset;
   dds_entity_t m_condition;
+
+  DataType m_data;
 };
 
 }  // namespace performance_test
