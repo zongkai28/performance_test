@@ -89,8 +89,7 @@ public:
   explicit RclcppCommunicator(SpinLock & lock)
   : Communicator(lock),
     m_node(ResourceManager::get().rclcpp_node()),
-    m_ROS2QOSAdapter(ROS2QOSAdapter(m_ec.qos()).get()),
-    m_data_copy(std::make_unique<DataType>()) {}
+    m_ROS2QOSAdapter(ROS2QOSAdapter(m_ec.qos()).get()) {}
 
   /**
    * \brief Publishes the provided data.
@@ -108,13 +107,12 @@ public:
       m_publisher = m_node->create_publisher<DataType>(
         m_ec.topic_name() + m_ec.pub_topic_postfix(), ros2QOSAdapter);
     }
-    DataType data;
     lock();
-    data.time = time;
-    data.id = next_sample_id();
+    m_data.time = time;
+    m_data.id = next_sample_id();
     increment_sent();  // We increment before publishing so we don't have to lock twice.
     unlock();
-    m_publisher->publish(data);
+    m_publisher->publish(m_data);
   }
 
   /// Reads received data from ROS 2 using callbacks
@@ -169,7 +167,8 @@ protected:
 
 private:
   std::shared_ptr<::rclcpp::Publisher<DataType>> m_publisher;
-  std::unique_ptr<DataType> m_data_copy;
+
+  DataType m_data;
 };
 }  // namespace performance_test
 #endif  // COMMUNICATION_ABSTRACTIONS__RCLCPP_COMMUNICATOR_HPP_
