@@ -487,8 +487,45 @@ if(BUILD_TESTING)
     set_compile_options(${APEX_PERFORMANCE_TEST_GTEST})
 endif()
 
+add_executable(live_reporter
+    src/live_reporter.cpp
+    src/outputs/stdout_output.hpp
+    src/outputs/stdout_output.cpp
+    src/outputs/csv_output.hpp
+    src/outputs/csv_output.cpp
+    src/outputs/json_output.hpp
+    src/outputs/json_output.cpp
+    src/events/event_aggregator.hpp
+    src/events/event_aggregator.cpp
+    src/events/event_db.hpp
+    src/events/event_db.cpp
+    src/events/event_live_printer.hpp
+    src/events/event_live_printer.cpp
+    src/events/event_logger.hpp
+    src/events/event_logger.cpp
+    src/events/event_objects.hpp
+    src/events/event_sink.hpp
+    src/events/event_source.hpp
+    src/experiment_execution/analysis_result.hpp
+    src/experiment_execution/analysis_result.cpp
+    src/experiment_configuration/communication_mean.hpp
+    src/experiment_configuration/communication_mean.cpp
+    src/experiment_configuration/qos_abstraction.hpp
+    src/experiment_configuration/qos_abstraction.cpp
+    src/experiment_configuration/external_info_storage.hpp
+    src/experiment_configuration/external_info_storage.cpp
+    src/utilities/cpu_info.hpp
+    src/utilities/statistics_tracker.hpp
+    src/utilities/cpu_usage_tracker.hpp
+    src/utilities/qnx_res_usage.hpp
+    src/utilities/json_logger.hpp
+    src/utilities/perf_clock.hpp
+)
+add_dependencies(live_reporter tclap rapidjson tabulate sole)
+target_link_libraries(live_reporter SQLite3)
+
 install(TARGETS
-    ${EXE_NAME}
+    ${EXE_NAME} # live_reporter
     DESTINATION lib/${PROJECT_NAME})
 
 install(PROGRAMS

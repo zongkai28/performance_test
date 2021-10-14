@@ -69,7 +69,7 @@ void EventLivePrinter::thread_function()
   const std::size_t data_size = (n_pubs > 0) ? subs[0].data_size : 0;
 
   std::map<message_id, timestamp> published_timestamps;
-  std::map<message_id, int> received_count;
+  std::map<message_id, std::size_t> received_count;
   std::map<sub_id, std::map<pub_id, sequence_id>> latest_received;
   
   PerfClock::time_point loop_start;
@@ -86,12 +86,12 @@ void EventLivePrinter::thread_function()
     const auto msg_rcvd = m_event_source->query_message_received(loop_start, loop_end, m_topic);
     const auto sys_mmt = m_event_source->query_system_measured(loop_start, loop_end);
 
-    for (const auto event : msg_sent) {
+    for (const auto & event : msg_sent) {
       const message_id msg_id = std::make_pair(event.pub_id, event.sequence_id);
       published_timestamps[msg_id] = event.timestamp;
     }
     
-    for (const auto event : msg_rcvd) {
+    for (const auto & event : msg_rcvd) {
       const sequence_id seq_id = event.sequence_id;
       const message_id msg_id = std::make_pair(event.pub_id, seq_id);
       

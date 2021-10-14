@@ -19,6 +19,7 @@
 #include <string>
 
 #include "event_objects.hpp"
+#include "../utilities/perf_clock.hpp"
 
 namespace performance_test
 {
