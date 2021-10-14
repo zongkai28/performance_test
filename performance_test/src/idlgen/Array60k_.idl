@@ -21,8 +21,8 @@ struct Array60k_
 {
 
 performance_test_msgs__Array60k__octet_array_61440 array_;
-  long long time_;
-  unsigned long long id_;
+string<36> publisher_id;
+uint64 sequence_id;
 
 };  // struct Array60k_
 

@@ -15,47 +15,10 @@
 #ifndef EVENTS__EVENT_SINK_HPP_
 #define EVENTS__EVENT_SINK_HPP_
 
-#include <sqlite3.h>
-#include <sys/resource.h>
-
-#include <string>
-
-#include "../utilities/cpu_info.hpp"
+#include "event_objects.hpp"
 
 namespace performance_test
 {
-
-struct EventRegisterPub {
-  std::string pub_id;
-  std::string msg_type;
-  std::string topic;
-};
-
-struct EventRegisterSub {
-  std::string sub_id;
-  std::string msg_type;
-  std::string topic;
-  std::size_t data_size;
-};
-
-struct EventMessageSent {
-  std::string pub_id;
-  std::uint64_t sequence_id;
-  std::int64_t timestamp;
-};
-
-struct EventMessageReceived {
-  std::string sub_id;
-  std::uint64_t sequence_id;
-  std::int64_t timestamp;
-};
-
-struct EventSystemMeasured {
-  CpuInfo cpu_info;
-  rusage sys_usage;
-  std::int64_t timestamp;
-};
-
 class EventSink
 {
 public:

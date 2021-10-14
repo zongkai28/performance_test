@@ -81,7 +81,12 @@ const auto SQL_INSERT_SUBSCRIBERS =
   "INSERT INTO subscribers (id, msg_type, topic) VALUES (?, ?, ?);";
 
 const auto SQL_INSERT_MESSAGES_SENT =
-  "INSERT INTO messages_sent (publisher_id, sequence_id, timestamp) VALUES (?, ?, ?);";
+  "INSERT INTO messages_sent ("
+  "  publisher_id,"
+  "  subscriber_id,"
+  "  sequence_id,"
+  "  timestamp"
+  ") VALUES (?, ?, ?, ?);";
 
 const auto SQL_INSERT_MESSAGES_RECEIVED =
   "INSERT INTO messages_received (subscriber_id, sequence_id, timestamp) VALUES (?, ?, ?);";
@@ -187,8 +192,9 @@ void EventDB::message_received(const EventMessageReceived & event)
 {
   sqlite3_reset(m_stmt_message_received);
   sqlite3_bind_text(m_stmt_message_received, 1, event.sub_id.c_str(), -1, SQLITE_STATIC);
-  sqlite3_bind_int64(m_stmt_message_received, 2, static_cast<std::int64_t>(event.sequence_id));
-  sqlite3_bind_int64(m_stmt_message_received, 3, event.timestamp);
+  sqlite3_bind_text(m_stmt_message_received, 2, event.pub_id.c_str(), -1, SQLITE_STATIC);
+  sqlite3_bind_int64(m_stmt_message_received, 3, static_cast<std::int64_t>(event.sequence_id));
+  sqlite3_bind_int64(m_stmt_message_received, 4, event.timestamp);
   sqlite3_step(m_stmt_message_received);
 }
 

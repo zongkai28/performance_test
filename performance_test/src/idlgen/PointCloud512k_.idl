@@ -32,8 +32,8 @@ performance_test_msgs__PointCloud512k__sensor_msgs__msg__dds___PointField__array
   unsigned long row_step_;
 performance_test_msgs__PointCloud512k__octet_array_524288 data_;
   boolean is_dense_;
-  long long time_;
-  unsigned long long id_;
+string<36> publisher_id;
+uint64 sequence_id;
 
 };  // struct PointCloud512k_
 

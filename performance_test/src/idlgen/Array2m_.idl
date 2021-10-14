@@ -21,8 +21,8 @@ struct Array2m_
 {
 
 performance_test_msgs__Array2m__octet_array_2097152 array_;
-  long long time_;
-  unsigned long long id_;
+string<36> publisher_id;
+uint64 sequence_id;
 
 };  // struct Array2m_
 

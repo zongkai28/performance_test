@@ -64,8 +64,9 @@ public:
       m_publisher->loan()
       .and_then(
         [&](auto & sample) {
+          sample->publisher_id = m_pub_id;
           uint64_t sequence_id = next_sample_id();
-          sample->id = sequence_id;
+          sample->sequence_id = sequence_id;
           m_event_logger.message_sent(m_pub_id, sequence_id, PerfClock::timestamp());
           sample.publish();
         })
@@ -75,8 +76,9 @@ public:
         });
     } else {
       DataType data;
+      data.publisher_id = m_pub_id;
       uint64_t sequence_id = next_sample_id();
-      data.id = sequence_id;
+      data.sequence_id = sequence_id;
       m_event_logger.message_sent(m_pub_id, sequence_id, PerfClock::timestamp());
       m_publisher->publishCopyOf(data)
       .or_else(
@@ -131,7 +133,7 @@ public:
             .and_then(
               [this](auto & data) {
                 m_event_logger.message_received(
-                  m_sub_id, data->id, PerfClock::timestamp());
+                  m_sub_id, data->publisher_id, data->sequence_id, PerfClock::timestamp());
               })
             .or_else(
               [](auto & result) {

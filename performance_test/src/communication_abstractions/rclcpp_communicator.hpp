@@ -118,14 +118,16 @@ public:
         throw std::runtime_error("RMW implementation does not support zero copy!");
       }
       auto borrowed_message{m_publisher->borrow_loaned_message()};
+      borrowed_message.get().publisher_id = m_pub_id;
       uint64_t sequence_id = next_sample_id();
-      borrowed_message.get().id = sequence_id;
+      borrowed_message.get().sequence_id = sequence_id;
       m_event_logger.message_sent(m_pub_id, sequence_id, PerfClock::timestamp());
       m_publisher->publish(std::move(borrowed_message));
     } else {
       DataType data;
+      data.publisher_id = m_pub_id;
       uint64_t sequence_id = next_sample_id();
-      data.id = sequence_id;
+      data.sequence_id = sequence_id;
       m_event_logger.message_sent(m_pub_id, sequence_id, PerfClock::timestamp());
       m_publisher->publish(data);
     }
@@ -162,7 +164,9 @@ protected:
     if (m_ec.roundtrip_mode() == ExperimentConfiguration::RoundTripMode::RELAY) {
       publish();
     } else {
-      m_event_logger.message_received(m_sub_id, data.id, PerfClock::timestamp());
+      auto ts = PerfClock::timestamp();
+      m_event_logger.message_received(
+        m_sub_id, data.publisher_id, data.sequence_id, ts);
     }
   }
 

@@ -39,9 +39,9 @@ module performance_test {
 
       performance_test::msg::Struct16 struct16f;
 
-      int64 time;
+      string<36> publisher_id;
 
-      uint64 id;
+      uint64 sequence_id;
     };
   };
 };

@@ -181,8 +181,9 @@ public:
         throw std::runtime_error("Failed to obtain a loaned sample " + std::to_string(status));
       }
       DataType * sample = static_cast<DataType *>(loaned_sample);
+      sample->publisher_id = m_pub_id;
       uint64_t sequence_id = next_sample_id();
-      sample->id_ = sequence_id;
+      sample->sequence_id = sequence_id;
       m_event_logger.message_sent(m_pub_id, sequence_id, PerfClock::timestamp());
       status = dds_write(m_datawriter, sample);
       if (status == DDS_RETCODE_UNSUPPORTED) {
@@ -192,8 +193,9 @@ public:
       }
     } else {
       DataType data;
+      data.publisher_id = m_pub_id;
       uint64_t sequence_id = next_sample_id();
-      data.id_ = sequence_id;
+      data.sequence_id = sequence_id;
       m_event_logger.message_sent(m_pub_id, sequence_id, PerfClock::timestamp());
       if (dds_write(m_datawriter, static_cast<void *>(&data)) < 0) {
         throw std::runtime_error("Failed to write to sample");
@@ -250,7 +252,7 @@ public:
           publish();
         } else {
           m_event_logger.message_received(
-            m_sub_id, data->id_, PerfClock::timestamp());
+            m_sub_id, data->publisher_id, data->sequence_id, PerfClock::timestamp());
         }
       }
       dds_return_loan(m_datareader, &untyped, n);

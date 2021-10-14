@@ -30,8 +30,8 @@ struct Range_
   float min_range_;
   float max_range_;
   float range_;
-  long long time_;
-  unsigned long long id_;
+string<36> publisher_id;
+uint64 sequence_id;
 
 };  // struct Range_
 

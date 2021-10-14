@@ -24,8 +24,8 @@ struct RadarDetection_
   Point_ position_;
   Vector3_ velocity_;
   double amplitude_;
-  long long time_;
-  unsigned long long id_;
+string<36> publisher_id;
+uint64 sequence_id;
 
 };  // struct RadarDetection_
 

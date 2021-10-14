@@ -184,8 +184,9 @@ public:
       throw std::runtime_error("This plugin does not support zero copy transfer");
     }
     DataType data;
+    data.publisher_id = m_pub_id;
     uint64_t sequence_id = next_sample_id();
-    data.id_ = sequence_id;
+    data.sequence_id = sequence_id;
     m_event_logger.message_sent(m_pub_id, sequence_id, PerfClock::timestamp());
     auto retcode = m_typed_datawriter->write(data, DDS::HANDLE_NIL);
     if (retcode != DDS::RETCODE_OK) {
@@ -247,7 +248,7 @@ public:
         const auto & data = m_data_seq[j];
         if (m_sample_info_seq[j].valid_data) {
           m_event_logger.message_received(
-            m_sub_id, data.id_, PerfClock::timestamp());
+            m_sub_id, data.publisher_id, data.sequence_id, PerfClock::timestamp());
         }
       }
       if (m_ec.roundtrip_mode() == ExperimentConfiguration::RoundTripMode::RELAY) {

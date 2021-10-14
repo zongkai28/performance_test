@@ -22,7 +22,6 @@
 #include <atomic>
 #include <string>
 
-#include "../utilities/spin_lock.hpp"
 #include "../utilities/statistics_tracker.hpp"
 #include "../experiment_configuration/experiment_configuration.hpp"
 #include "../events/event_logger.hpp"

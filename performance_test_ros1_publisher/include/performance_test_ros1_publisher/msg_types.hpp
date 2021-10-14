@@ -51,7 +51,7 @@ struct Msg : public MsgBase
 
   void publish() override
   {
-    data->id = ++data->id;
+    data->id = ++data->id;  // TODO(erik.snider): SYNC THIS WITH NEW MESSAGE STRUCTURE
     data->time = std::chrono::steady_clock::now().time_since_epoch().count();
     pub.publish(*data);
   }

@@ -45,7 +45,10 @@ public:
   void message_sent(
     const std::string & pub_id, std::uint64_t sequence_id, std::int64_t timestamp);
   void message_received(
-    const std::string & sub_id, std::uint64_t sequence_id, std::int64_t timestamp);
+    const std::string & sub_id,
+    const std::string & pub_id,
+    std::uint64_t sequence_id,
+    std::int64_t timestamp);
   void system_measured(
     const CpuInfo & cpu_info, const rusage & sys_usage, std::int64_t timestamp);
 

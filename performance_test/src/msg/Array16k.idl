@@ -9,9 +9,9 @@ module performance_test {
     struct Array16k {
       octet__16384 array;
 
-      int64 time;
+      string<36> publisher_id;
 
-      uint64 id;
+      uint64 sequence_id;
     };
   };
 };

@@ -38,9 +38,9 @@ module performance_test {
 
       octet structf;
 
-      int64 time;
+      string<36> publisher_id;
 
-      uint64 id;
+      uint64 sequence_id;
     };
   };
 };

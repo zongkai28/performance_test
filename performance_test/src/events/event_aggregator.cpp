@@ -68,34 +68,32 @@ void EventAggregator::register_sub(const EventRegisterSub & event)
 
 void EventAggregator::message_sent(const EventMessageSent & event)
 {
+  message_id msg_id = std::make_pair(event.pub_id, event.sequence_id);
+
   std::lock_guard<std::mutex> guard(m_mutex);
   m_num_sent_samples++;
-  m_published_timestamps[event.sequence_id] = event.timestamp;
+  m_published_timestamps[msg_id] = event.timestamp;
 }
 
 void EventAggregator::message_received(const EventMessageReceived & event)
 {
   sequence_id seq_id = event.sequence_id;
+  message_id msg_id = std::make_pair(event.pub_id, event.sequence_id);
+
   std::lock_guard<std::mutex> guard(m_mutex);
   m_num_received_samples++;
 
   // When the system gets busy, sometimes the events don't all show up
   // exactly in order, even if the samples all were sent and received in order.
   // Maybe cache stuff in begin/end transaction to address this?
-  if (m_published_timestamps.count(seq_id) != 0) {
-    auto diff_count = event.timestamp - m_published_timestamps[seq_id];
+  if (m_published_timestamps.count(msg_id) != 0) {
+    auto diff_count = event.timestamp - m_published_timestamps[msg_id];
     auto diff_ns = std::chrono::nanoseconds{diff_count};
     auto sec_diff = std::chrono::duration_cast<std::chrono::duration<double>>(diff_ns).count();
     m_latency_statistics.add_sample(sec_diff);
   }
 
-  m_received_count[seq_id]++;
-  if (m_received_count[seq_id] == m_num_subs) {
-    m_published_timestamps.erase(seq_id);
-    m_received_count.erase(seq_id);
-  }
-
-  sequence_id prev = m_latest_received[event.sub_id];
+  sequence_id prev = m_latest_received[event.sub_id][event.pub_id];
 
   // Ensure samples always arrive in the right order and no duplicates exist
   if (seq_id <= prev) {
@@ -105,8 +103,23 @@ void EventAggregator::message_received(const EventMessageReceived & event)
       " Prev. sample id : " + std::to_string(prev));
   }
 
-  m_num_lost_samples += (seq_id - prev - 1);
-  m_latest_received[event.sub_id] = seq_id;
+  for (sequence_id i = prev + 1; i < seq_id; i++) {
+    m_num_lost_samples++;
+    auto lost_msg_id = std::make_pair(event.pub_id, i);
+    m_received_count[lost_msg_id]++;
+    if (m_received_count[lost_msg_id] == m_num_subs) {
+      m_published_timestamps.erase(lost_msg_id);
+      m_received_count.erase(lost_msg_id);
+    }
+  }
+
+  m_received_count[msg_id]++;
+  if (m_received_count[msg_id] == m_num_subs) {
+    m_published_timestamps.erase(msg_id);
+    m_received_count.erase(msg_id);
+  }
+
+  m_latest_received[event.sub_id][event.pub_id] = seq_id;
 
   m_sum_data_received += m_data_sizes[event.sub_id];
 }

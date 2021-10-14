@@ -34,8 +34,8 @@ struct Struct16_
   octet structd_;
   octet structe_;
   octet structf_;
-  long long time_;
-  unsigned long long id_;
+string<36> publisher_id;
+uint64 sequence_id;
 
 };  // struct Struct16_
 

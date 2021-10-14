@@ -35,8 +35,8 @@ struct Struct256_
   performance_test_msgs::msg::dds_::Struct16_ struct16d_;
   performance_test_msgs::msg::dds_::Struct16_ struct16e_;
   performance_test_msgs::msg::dds_::Struct16_ struct16f_;
-  long long time_;
-  unsigned long long id_;
+string<36> publisher_id;
+uint64 sequence_id;
 
 };  // struct Struct256_
 

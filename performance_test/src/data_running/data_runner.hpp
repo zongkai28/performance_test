@@ -23,7 +23,6 @@
 #include <memory>
 #include <thread>
 
-#include "../utilities/spin_lock.hpp"
 #include "../utilities/perf_clock.hpp"
 #include "../events/event_logger.hpp"
 

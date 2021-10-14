@@ -158,8 +158,9 @@ public:
         throw std::runtime_error("Failed to get a loan");
       }
       init_data(*sample);
+      sample->publisher_id = m_pub_id;
       uint64_t sequence_id = next_sample_id();
-      sample->id_ = sequence_id;
+      sample->sequence_id = sequence_id;
       m_event_logger.message_sent(m_pub_id, sequence_id, PerfClock::timestamp());
       auto retcode = m_typed_datawriter->write(*sample, DDS_HANDLE_NIL);
       if (retcode != DDS_RETCODE_OK) {
@@ -168,8 +169,9 @@ public:
     } else {
       DataType data;
       init_data(data);
+      data.publisher_id = m_pub_id;
       uint64_t sequence_id = next_sample_id();
-      data.id_ = sequence_id;
+      data.sequence_id = sequence_id;
       m_event_logger.message_sent(m_pub_id, sequence_id, PerfClock::timestamp());
       auto retcode = m_typed_datawriter->write(data, DDS_HANDLE_NIL);
       if (retcode != DDS_RETCODE_OK) {
@@ -242,7 +244,7 @@ public:
         const auto & data = m_data_seq[j];
         if (m_sample_info_seq[j].valid_data) {
           m_event_logger.message_received(
-            m_sub_id, data.id, PerfClock::timestamp());
+            m_sub_id, data.publisher_id, data.sequence_id, PerfClock::timestamp());
         }
       }
       

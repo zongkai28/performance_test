@@ -33,6 +33,7 @@ EventLogger::EventLogger(const ExperimentConfiguration & ec)
   m_run(true),
   m_thread(std::bind(&EventLogger::thread_function, this))
 {
+  std::cerr << "NUM_SINKS: " << m_event_sinks.size() << std::endl;
 }
 
 EventLogger::~EventLogger()
@@ -63,9 +64,12 @@ void EventLogger::message_sent(
 }
 
 void EventLogger::message_received(
-  const std::string & sub_id, std::uint64_t sequence_id, std::int64_t timestamp)
+  const std::string & sub_id,
+  const std::string & pub_id,
+  std::uint64_t sequence_id,
+  std::int64_t timestamp)
 {
-  m_q_message_received.enqueue(EventMessageReceived{sub_id, sequence_id, timestamp});
+  m_q_message_received.enqueue(EventMessageReceived{sub_id, pub_id, sequence_id, timestamp});
 }
 
 void EventLogger::system_measured(
@@ -130,10 +134,10 @@ EventLogger::create_event_sinks(const ExperimentConfiguration & ec) {
     sinks.push_back(std::make_shared<EventDB>(sole::uuid4().str() + ".db"));
   }
   
-  auto outputs = ec.configured_outputs();
-  if (!outputs.empty()) {
-    sinks.push_back(std::make_shared<EventAggregator>(outputs));
-  }
+  // auto outputs = ec.configured_outputs();
+  // if (!outputs.empty()) {
+  //   sinks.push_back(std::make_shared<EventAggregator>(outputs));
+  // }
 
   return sinks;
 }
