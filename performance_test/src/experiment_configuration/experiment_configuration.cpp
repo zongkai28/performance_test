@@ -83,6 +83,7 @@ std::ostream & operator<<(std::ostream & stream, const ExperimentConfiguration &
            "\nMemory check enabled: " << e.check_memory() <<
            "\nUse single participant: " << e.use_single_participant() <<
            "\nWith security: " << e.is_with_security() <<
+           "\nShared memory transfer: " << e.is_shared_memory_transfer() <<
            "\nZero copy transfer: " << e.is_zero_copy_transfer() <<
            "\nRoundtrip Mode: " << e.roundtrip_mode() <<
            "\nIgnore seconds from beginning: " << e.rows_to_ignore();
@@ -569,6 +570,20 @@ bool ExperimentConfiguration::is_with_security() const
 {
   check_setup();
   return m_with_security;
+}
+
+bool ExperimentConfiguration::is_shared_memory_transfer() const
+{
+  check_setup();
+#ifdef PERFORMANCE_TEST_APEX_OS_POLLING_SUBSCRIPTION_ENABLED
+#ifdef DDSCXX_HAS_SHM
+  if (rmw_implementation() == "rmw_apex_middleware" && use_ros2_layers()) {
+    return apex::settings::inspect::get_or_default<bool>(
+      apex::settings::repository::get(), "domain/shared_memory/enable", false);
+  }
+#endif
+#endif
+  return false;
 }
 
 bool ExperimentConfiguration::is_zero_copy_transfer() const
