@@ -1,0 +1,132 @@
+# Copyright 2021 Apex.AI, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import argparse
+import os
+import time
+import yaml
+
+from .logs import getExperimentConfigs, getExperimentLogPath
+from .utils import create_dir, generate_shmem_file, PerfConfig
+from .qos import DURABILITY, HISTORY, RELIABILITY
+from .transport import TRANSPORT
+
+
+def prepare_for_shmem(cfg: PerfConfig, output_dir):
+    # TODO(flynneva): check cfg.com_mean if these are applicable
+    if cfg.transport == TRANSPORT.ZERO_COPY or cfg.transport == TRANSPORT.SHMEM:
+        shmem_config_file = generate_shmem_file(output_dir)
+        print("[Warning] RouDi is expected to already be running")
+        os.environ["APEX_MIDDLEWARE_SETTINGS"] = shmem_config_file
+        os.environ["CYCLONEDDS_URI"] = shmem_config_file
+
+
+def teardown_from_shmem(cfg: PerfConfig):
+    if cfg.transport == TRANSPORT.ZERO_COPY or cfg.transport == TRANSPORT.SHMEM:
+        os.unsetenv("APEX_MIDDLEWARE_SETTINGS")
+        os.unsetenv("CYCLONEDDS_URI")
+
+
+def run_experiment(cfg: PerfConfig, output_dir, overwrite: bool):
+    lf = getExperimentLogPath(output_dir, cfg)
+    if os.path.exists(lf) and not overwrite:
+        print(f"Skipping experiment {cfg.log_file_name()} as results already exist in " + output_dir)
+        return
+    else:
+        print(f"Running experiment {cfg.log_file_name()}")
+
+    cmd = "ros2 run performance_test perf_test"
+    cmd += f" -c {cfg.com_mean}"
+    cmd += f" -m {cfg.msg}"
+    cmd += f" -r {cfg.rate}"
+    if cfg.reliability == RELIABILITY.RELIABLE:
+        cmd += " --reliable"
+    if cfg.durability == DURABILITY.TRANSIENT_LOCAL:
+        cmd += " --transient"
+    if cfg.history == HISTORY.KEEP_LAST:
+        cmd += " --keep-last"
+    cmd += f" --history-depth {cfg.history_depth}"
+    cmd += f" --max-runtime {cfg.max_runtime}"
+    cmd += f" --ignore {cfg.ignore_seconds}"
+    if cfg.transport == TRANSPORT.INTRA:
+        cmd += f" -p {cfg.pubs} -s {cfg.subs} -o json --json-logfile {lf}"
+        os.system(cmd)
+    else:
+        cmd_sub = cmd + f" -p 0 -s {cfg.subs} -o json --json-logfile {lf}"
+        cmd_pub = cmd + f" -s 0 -p {cfg.pubs} -o none"
+        if cfg.transport == TRANSPORT.ZERO_COPY:
+            cmd_sub += " --zero-copy"
+            cmd_pub += " --zero-copy"
+        prepare_for_shmem(cfg, output_dir)
+        os.system(cmd_sub + " &")
+        time.sleep(1)
+        os.system(cmd_pub)
+        teardown_from_shmem(cfg)
+
+
+def run_experiments(files: "list[str]", output_dir, overwrite: bool):
+    # make sure output dir exists
+    create_dir(output_dir)
+    # loop over given run files and run experiments
+    for run_file in files:
+        with open(run_file, "r") as f:
+            run_cfg = yaml.load(f, Loader=yaml.FullLoader)
+
+        run_configs = getExperimentConfigs(run_cfg["experiments"])
+
+        for run_config in run_configs:
+            run_experiment(run_config, output_dir, overwrite)
+
+
+def main():
+    PERF_LOG_DIR = os.getenv("PERF_LOG_DIR")
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--log-dir",
+        "-l",
+        default=str(PERF_LOG_DIR),
+        help="The directory for the perf_test log files and plot images",
+    )
+    parser.add_argument(
+        "--test-name",
+        "-t",
+        default="experiment",
+        help="Name of the experiment set to help give context to the test results",
+    )
+    parser.add_argument(
+        "--configs",
+        "-c",
+        default=[],
+        nargs="+",
+        help="The yaml file(s) containing experiments to run",
+    )
+    parser.add_argument(
+        "--force",
+        "-f",
+        action="store_true",
+        help="Force existing results to be overwritten (by default, they are skipped).",
+    )
+    args = parser.parse_args()
+    log_dir = getattr(args, "log_dir")
+    test_name = getattr(args, "test_name")
+    run_files = getattr(args, "configs")
+    overwrite = bool(getattr(args, "force"))
+
+    log_dir = os.path.join(log_dir, test_name)
+    run_experiments(run_files, log_dir, overwrite)
+
+
+# if this file is called directly
+if __name__ == "__main__":
+    main()
