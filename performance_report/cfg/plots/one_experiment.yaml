@@ -1,0 +1,27 @@
+---
+traces:
+    # default for experiments:
+    #   com_mean: ApexOSPollingSubscription
+    #   transport: INTRA
+    #   msg: Array1k
+    #   pubs: 1
+    #   subs: 1
+    #   rate: 100
+    #   reliability: RELIABLE
+    #   durability: VOLATILE
+    #   history_kind: KEEP_LAST
+    #   history_depth: 16
+  apex_os_intra_1_subs:
+    name: Apex.OS + Apex.Middleware INTRA 1 subs
+    color: '#0000ff'
+    dash: null
+    experiments:
+      -
+        com_mean: ApexOSPollingSubscription
+        transport: INTRA
+        msg: Array16k
+plots:
+  time_vs_latency_cpu_mem:
+    apex_os_compare_transports:
+      traces:
+        - apex_os_intra_1_subs

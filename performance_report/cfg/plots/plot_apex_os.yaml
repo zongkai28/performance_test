@@ -1,0 +1,146 @@
+---
+traces:
+    # default for experiments:
+    #   com_mean: ApexOSPollingSubscription
+    #   transport: INTRA
+    #   msg: Array1k
+    #   pubs: 1
+    #   subs: 1
+    #   rate: 100
+    #   reliability: RELIABLE
+    #   durability: VOLATILE
+    #   history_kind: KEEP_LAST
+    #   history_depth: 16
+  apex_os_intra_1_subs:
+    name: Apex.OS + Apex.Middleware INTRA 1 subs
+    color: '#0000ff'
+    dash: null
+    experiments:
+      -
+        com_mean: ApexOSPollingSubscription
+        transport: INTRA
+        msg:
+          - Array1k
+          - Array4k
+          - Array16k
+          - Array64k
+          - Array256k
+          - Array1m
+          - Array4m
+  apex_os_shmem_1_subs:
+    name: Apex.OS + Apex.Middleware SHMEM 1 subs
+    color: '#00ff00'
+    dash: null
+    experiments:
+      -
+        com_mean: ApexOSPollingSubscription
+        transport: SHMEM
+        msg:
+          - Array1k
+          - Array4k
+          - Array16k
+          - Array64k
+          - Array256k
+          - Array1m
+          - Array4m
+  apex_os_zc_1_subs:
+    name: Apex.OS + Apex.Middleware Zero Copy 1 subs
+    color: '#ff0000'
+    dash: null
+    experiments:
+      -
+        com_mean: ApexOSPollingSubscription
+        transport: ZERO_COPY
+        msg:
+          - Array1k
+          - Array4k
+          - Array16k
+          - Array64k
+          - Array256k
+          - Array1m
+          - Array4m
+  apex_os_zc_3_subs:
+    name: Apex.OS + Apex.Middleware Zero Copy 3 subs
+    color: '#bf0000'
+    dash: null
+    experiments:
+      -
+        com_mean: ApexOSPollingSubscription
+        transport: ZERO_COPY
+        msg:
+          - Array1k
+          - Array4k
+          - Array16k
+          - Array64k
+          - Array256k
+          - Array1m
+          - Array4m
+        subs: 3
+  apex_os_zc_10_subs:
+    name: Apex.OS + Apex.Middleware Zero Copy 10 subs
+    color: '#7f0000'
+    dash: null
+    experiments:
+      -
+        com_mean: ApexOSPollingSubscription
+        transport: ZERO_COPY
+        msg:
+          - Array1k
+          - Array4k
+          - Array16k
+          - Array64k
+          - Array256k
+          - Array1m
+          - Array4m
+        subs: 10
+  apex_os_intra_array1m_100_1_1:
+    name: Apex.OS + Apex.Middleware INTRA 1 subs
+    color: '#ff0000'
+    dash: null
+    experiments:
+      -
+        com_mean: ApexOSPollingSubscription
+        transport: INTRA
+        msg: Array1m
+        subs: 1
+        rate: 100
+  apex_os_shmem_array1m_100_1_1:
+    name: Apex.OS + Apex.Middleware SHMEM 1 subs
+    color: '#00ff00'
+    dash: null
+    experiments:
+      -
+        com_mean: ApexOSPollingSubscription
+        transport: SHMEM
+        msg: Array1m
+        subs: 1
+        rate: 100
+  apex_os_zc_array1m_100_1_1:
+    name: Apex.OS + Apex.Middleware Zero Copy 1 subs
+    color: '#0000ff'
+    dash: null
+    experiments:
+      -
+        com_mean: ApexOSPollingSubscription
+        transport: ZERO_COPY
+        msg: Array1m
+        subs: 1
+        rate: 100
+plots:
+  msg_size_vs_latency_cpu:
+    apex_os_compare_transports:
+      traces:
+        - apex_os_intra_1_subs
+        - apex_os_shmem_1_subs
+        - apex_os_zc_1_subs
+    apex_os_compare_num_subs:
+      traces:
+        - apex_os_zc_1_subs
+        - apex_os_zc_3_subs
+        - apex_os_zc_10_subs
+  time_vs_latency_cpu_mem:
+    compare_transports:
+      traces:
+        - apex_os_intra_array1m_100_1_1
+        - apex_os_shmem_array1m_100_1_1
+        - apex_os_zc_array1m_100_1_1
