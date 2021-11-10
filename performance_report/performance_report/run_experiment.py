@@ -18,7 +18,7 @@ import time
 import yaml
 
 from .logs import getExperimentConfigs, getExperimentLogPath
-from .utils import create_dir, generate_shmem_file, PerfConfig
+from .utils import create_dir, generate_shmem_file, PerfConfig, PerfArgParser
 from .qos import DURABILITY, HISTORY, RELIABILITY
 from .transport import TRANSPORT
 
@@ -90,34 +90,10 @@ def run_experiments(files: "list[str]", output_dir, overwrite: bool):
 
 
 def main():
-    PERF_LOG_DIR = os.getenv("PERF_LOG_DIR")
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--log-dir",
-        "-l",
-        default=str(PERF_LOG_DIR),
-        help="The directory for the perf_test log files and plot images",
-    )
-    parser.add_argument(
-        "--test-name",
-        "-t",
-        default="experiment",
-        help="Name of the experiment set to help give context to the test results",
-    )
-    parser.add_argument(
-        "--configs",
-        "-c",
-        default=[],
-        nargs="+",
-        help="The yaml file(s) containing experiments to run",
-    )
-    parser.add_argument(
-        "--force",
-        "-f",
-        action="store_true",
-        help="Force existing results to be overwritten (by default, they are skipped).",
-    )
+    parser = PerfArgParser()
+    parser.init_args()
     args = parser.parse_args()
+    
     log_dir = getattr(args, "log_dir")
     test_name = getattr(args, "test_name")
     run_files = getattr(args, "configs")

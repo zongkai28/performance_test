@@ -1,0 +1,27 @@
+---
+traces:
+    # default for experiments:
+    #   com_mean: ApexOSPollingSubscription
+    #   transport: INTRA
+    #   msg: Array1k
+    #   pubs: 1
+    #   subs: 1
+    #   rate: 100
+    #   reliability: RELIABLE
+    #   durability: VOLATILE
+    #   history_kind: KEEP_LAST
+    #   history_depth: 16
+  rclcpp_intra_1_subs:
+    title: RCLCPP Single Threaded Executor, 1 pub 1 sub Array1k
+    color: '#0000ff'
+    dash: null
+    experiments:
+      -
+        com_mean: rclcpp-single-threaded-executor
+        transport: INTRA
+        msg: Array16k
+plots:
+  time_vs_latency_cpu_mem:
+    rclcpp_compare_transports:
+      traces:
+        - rclcpp_intra_1_subs

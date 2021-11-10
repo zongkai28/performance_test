@@ -18,7 +18,7 @@ import argparse
 
 from .logs import getTraceConfigs
 from .figures import msg_size_vs_latency_cpu, time_vs_latency_cpu_mem
-from .utils import create_dir
+from .utils import create_dir, PerfArgParser
 
 
 def generate_plots(plot_cfg_file, output_dir):
@@ -63,27 +63,8 @@ def generate_plots(plot_cfg_file, output_dir):
 
 
 def main():
-    PERF_LOG_DIR = os.getenv("PERF_LOG_DIR")
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--log-dir",
-        "-l",
-        default=str(PERF_LOG_DIR),
-        help="The directory for the perf_test log files and plot images",
-    )
-    parser.add_argument(
-        "--test-name",
-        "-t",
-        default="experiment",
-        help="Name of the experiment set to help give context to the test results",
-    )
-    parser.add_argument(
-        "--configs",
-        "-c",
-        default=[],
-        nargs="+",
-        help="The yaml file(s) containing traces to plot",
-    )
+    parser = PerfArgParser()
+    parser.init_args()
     args = parser.parse_args()
     log_dir = getattr(args, "log_dir")
     test_name = getattr(args, "test_name")

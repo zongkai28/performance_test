@@ -14,30 +14,21 @@
 
 import numpy as np
 
-import plotly.graph_objects as go
+from .msg import MSG_TYPES
+from .utils import DatasetConfig
 
-from .utils import TraceConfig
+result = {
+    'x': [],
+    'y_lat': [],
+    'y_cpu': []
+}
 
 
-def msg_size_vs_latency_cpu(configs: "list[TraceConfig]"):
-    message_types = [
-      'Array1k',
-      'Array4k',
-      'Array16k',
-      'Array64k',
-      'Array256k',
-      'Array1m',
-      'Array4m',
-    ]
-
+def msg_size_vs_latency_cpu(configs: "list[DatasetConfig]"):
     results = []
     for config in configs:
-        res = {
-          'x': [],
-          'y_lat': [],
-          'y_cpu': []
-        }
-        for m, message_type in enumerate(message_types):
+        res = result.copy()
+        for m, message_type in enumerate(MSG_TYPES):
             for i, header in enumerate(config.headers):
                 if header['msg_name'] == message_type:
                     df = config.dataframes[i]
@@ -49,48 +40,48 @@ def msg_size_vs_latency_cpu(configs: "list[TraceConfig]"):
                     res['dash'] = config.dash
         results.append(res)
 
-    fig_lat = go.Figure()
+    fig_lat = figure()
 
     # Plot latency vs message size
-    fig_lat = go.FigureWidget()
-    fig_lat.layout.title = 'Mean latency vs Message Size'
-    fig_lat.layout.xaxis.title = 'Message Size'
-    fig_lat.layout.xaxis.tickmode = 'array'
-    fig_lat.layout.xaxis.tickvals = list(range(len(message_types)))
-    fig_lat.layout.xaxis.ticktext = message_types
-    fig_lat.layout.yaxis.title = 'Mean latency (ms)'
-    fig_lat.layout.width = 1200
-    fig_lat.layout.height = 800
+    #    fig_lat = go.FigureWidget()
+    #    fig_lat.layout.title = 'Mean latency vs Message Size'
+    #    fig_lat.layout.xaxis.title = 'Message Size'
+    #    fig_lat.layout.xaxis.tickmode = 'array'
+    #    fig_lat.layout.xaxis.tickvals = list(range(len(message_types)))
+    #    fig_lat.layout.xaxis.ticktext = message_types
+    #    fig_lat.layout.yaxis.title = 'Mean latency (ms)'
+    #    fig_lat.layout.width = 1200
+    #    fig_lat.layout.height = 800
+    #
+    #    for result in results:
+    #        fig_lat.add_scatter(x=result['x'],
+    #                            y=result['y_lat'],
+    #                            name=result['name'],
+    #                            line=dict(color=result['color'], width=3, dash=result['dash']))
 
-    for result in results:
-        fig_lat.add_scatter(x=result['x'],
-                            y=result['y_lat'],
-                            name=result['name'],
-                            line=dict(color=result['color'], width=3, dash=result['dash']))
-
-    fig_cpu = go.Figure()
+    fig_cpu = figure()
 
     # Plot latency vs message size
-    fig_cpu = go.FigureWidget()
-    fig_cpu.layout.title = 'CPU Usage vs Message Size'
-    fig_cpu.layout.xaxis.title = 'Message Size'
-    fig_cpu.layout.xaxis.tickmode = 'array'
-    fig_cpu.layout.xaxis.tickvals = list(range(len(message_types)))
-    fig_cpu.layout.xaxis.ticktext = message_types
-    fig_cpu.layout.yaxis.title = 'CPU Usage (%)'
-    fig_cpu.layout.width = 1200
-    fig_cpu.layout.height = 800
-
-    for result in results:
-        fig_cpu.add_scatter(x=result['x'],
-                            y=result['y_cpu'],
-                            name=result['name'],
-                            line=dict(color=result['color'], width=3, dash=result['dash']))
+    #    fig_cpu = go.FigureWidget()
+    #    fig_cpu.layout.title = 'CPU Usage vs Message Size'
+    #    fig_cpu.layout.xaxis.title = 'Message Size'
+    #    fig_cpu.layout.xaxis.tickmode = 'array'
+    #    fig_cpu.layout.xaxis.tickvals = list(range(len(message_types)))
+    #    fig_cpu.layout.xaxis.ticktext = message_types
+    #    fig_cpu.layout.yaxis.title = 'CPU Usage (%)'
+    #    fig_cpu.layout.width = 1200
+    #    fig_cpu.layout.height = 800
+    #
+    #    for result in results:
+    #        fig_cpu.add_scatter(x=result['x'],
+    #                            y=result['y_cpu'],
+    #                            name=result['name'],
+    #                            line=dict(color=result['color'], width=3, dash=result['dash']))
 
     return fig_lat, fig_cpu
 
 
-def time_vs_latency_cpu_mem(configs: "list[TraceConfig]"):
+def time_vs_latency_cpu_mem(configs: "list[DatasetConfig]"):
     for config in configs:
         if len(config.headers) != 1:
             raise ValueError('Time trace should have exactly one experiment')

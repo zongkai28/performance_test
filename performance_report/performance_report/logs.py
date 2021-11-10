@@ -18,7 +18,7 @@ import pandas as pd
 import os
 
 
-from .utils import PerfConfig, TraceConfig
+from .utils import PerfConfig, DatasetConfig
 
 
 def parseLog(filename):
@@ -80,10 +80,10 @@ def config_cartesian_product(d: dict) -> list:
     return accum
 
 
-def getTraceConfigs(yaml_traces: dict, log_dir) -> dict:
-    trace_configs = {}
-    for trace_id, trace_details in yaml_traces.items():
-        perf_configs = getExperimentConfigs(trace_details['experiments'])
+def getDatasets(yaml_datasets: dict, log_dir) -> dict:
+    dataset_configs = {}
+    for dataset_id, dataset_details in yaml_datasets.items():
+        perf_configs = getExperimentConfigs(dataset_details['experiments'])
         files = [pc.log_file_name() for pc in perf_configs]
         paths = [os.path.join(log_dir, f) for f in files]
         headers = []
@@ -93,11 +93,10 @@ def getTraceConfigs(yaml_traces: dict, log_dir) -> dict:
             if not dataframe.empty:
                 headers.append(header)
                 dataframes.append(dataframe)
-        trace_configs[trace_id] = TraceConfig(
-            name=trace_details['name'],
-            color=trace_details['color'],
-            dash=trace_details['dash'],
+        dataset_configs[dataset_id] = DatasetConfig(
+            name=dataset_details['name'],
+            theme=dataset_details['theme'],
             headers=headers,
             dataframes=dataframes
         )
-    return trace_configs
+    return dataset_configs

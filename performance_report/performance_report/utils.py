@@ -11,8 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import argparse
 import os
+import sys
 import pandas as pd
 import yaml
 
@@ -88,20 +89,60 @@ class FileContents:
         self.dataframe = dataframe
 
 
-class TraceConfig:
+class DatasetConfig:
     def __init__(
         self,
         name: str,
-        color: str,
-        dash: str,
+        theme: {},
         headers: "list[dict]",
         dataframes: pd.DataFrame,
     ) -> None:
         self.name = name
-        self.color = color
-        self.dash = dash
+        self.theme = theme
         self.headers = headers
         self.dataframes = dataframes
+
+
+class PerfArgParser(argparse.ArgumentParser):
+
+    def init_args(self):
+        self.add_argument(
+            "--log-dir",
+            "-l",
+            default='.',
+            help="The directory for the perf_test log files and plot images",
+        )
+        self.add_argument(
+            "--test-name",
+            "-t",
+            default="experiment",
+            help="Name of the experiment set to help give context to the test results",
+        )
+        self.add_argument(
+            "--configs",
+            "-c",
+            default=[],
+            nargs="+",
+            help="The yaml file(s) containing experiments to run",
+        )
+        self.add_argument(
+            "--force",
+            "-f",
+            action="store_true",
+            help="Force existing results to be overwritten (by default, they are skipped).",
+        )
+        if len(sys.argv) == 1:
+            print('[ERROR][ %s ] No arguments given\n' % self.prog)
+            self.print_help()
+            sys.exit(2)
+
+    def error(self, msg):
+        print('[ERROR][ %s ] %s\n' % (self.prog, msg))
+        self.print_help()
+        sys.exit(2)
+    
+    def exit(self, msg):
+        print('EXIT')
 
 
 def create_dir(dir_path) -> bool:
