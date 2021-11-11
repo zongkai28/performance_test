@@ -22,7 +22,6 @@
 #include <mutex>
 #include <thread>
 
-#include "../experiment_configuration/topics.hpp"
 #include "../experiment_configuration/qos_abstraction.hpp"
 
 #include "rclcpp_communicator.hpp"
