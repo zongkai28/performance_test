@@ -15,7 +15,7 @@
 from enum import Enum
 
 
-class TRANSPORT(Enum):
+class TRANSPORT(int, Enum):
     INTRA = 1
     UDP = 2
     SHMEM = 3

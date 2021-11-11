@@ -18,13 +18,14 @@ import pandas as pd
 import os
 
 
-from .utils import PerfConfig, DatasetConfig
+from .utils import ExperimentConfig, DatasetConfig, ThemeConfig
 
 
-def parseLog(filename):
+def parseLog(log_dir: str, experiment: ExperimentConfig):
     """Load logfile into header dictionary and pandas dataframe."""
     header = ''
     dataframe = pd.DataFrame()
+    filename = os.path.join(log_dir, experiment.log_file_name())
     try:
         with open(filename) as source:
             try:
@@ -38,21 +39,25 @@ def parseLog(filename):
                 dataframe['cpu_usage (%)'] = dataframe['cpu_info_cpu_usage']
                 dataframe['ru_maxrss'] = dataframe['sys_tracker_ru_maxrss']
                 dataframe['T_experiment'] = dataframe['experiment_start'] / 1000000000
+                # get experiement settings as dataframe
+                exp_df = experiment.as_dataframe()
+                exp_df = exp_df.loc[exp_df.index.repeat(len(dataframe.index))].reset_index()
+                dataframe = pd.concat([exp_df, dataframe], axis=1)
     except FileNotFoundError:
         print("Results for experiment " + filename + " do not exist")
     return header, dataframe
 
 
-def getExperimentConfigs(yaml_experiments: list) -> 'list[PerfConfig]':
-    accum = []
+def getExperiments(yaml_experiments: list) -> 'list[ExperimentConfig]':
+    experiments = []
     for experiment in yaml_experiments:
         config_matrix = coerce_dict_vals_to_lists(experiment)
         config_combos = config_cartesian_product(config_matrix)
-        perf_configs = [PerfConfig(**args) for args in config_combos]
-        for config in perf_configs:
-            if config not in accum:
-                accum.append(config)
-    return accum
+        experiment_configs = [ExperimentConfig(**args) for args in config_combos]
+        for config in experiment_configs:
+            if config not in experiments:
+                experiments.append(config)
+    return experiments
 
 
 def getExperimentLogPath(dir, cfg):
@@ -81,22 +86,30 @@ def config_cartesian_product(d: dict) -> list:
 
 
 def getDatasets(yaml_datasets: dict, log_dir) -> dict:
-    dataset_configs = {}
+    datasets = {}
     for dataset_id, dataset_details in yaml_datasets.items():
-        perf_configs = getExperimentConfigs(dataset_details['experiments'])
-        files = [pc.log_file_name() for pc in perf_configs]
-        paths = [os.path.join(log_dir, f) for f in files]
-        headers = []
+        experiments = getExperiments(dataset_details['experiments'])
+        exp_dfs = []
         dataframes = []
-        for path in paths:
-            header, dataframe = parseLog(path)
-            if not dataframe.empty:
-                headers.append(header)
-                dataframes.append(dataframe)
-        dataset_configs[dataset_id] = DatasetConfig(
-            name=dataset_details['name'],
-            theme=dataset_details['theme'],
-            headers=headers,
-            dataframes=dataframes
-        )
-    return dataset_configs
+        headers = []
+        for experiment in experiments:
+            header, dataframe = parseLog(log_dir, experiment)
+            headers.append(header)
+            dataframes.append(dataframe)
+        # concate all dfs to one single one
+        results_df = pd.concat(dataframes, ignore_index=True)
+        config_matrix = coerce_dict_vals_to_lists(dataset_details)
+        config_combos = config_cartesian_product(config_matrix)
+        for cfg in config_combos:
+            theme_matrix = coerce_dict_vals_to_lists(cfg['theme'])
+            theme_combos = config_cartesian_product(theme_matrix)
+            themes = [ThemeConfig(**args) for args in theme_combos]
+            for theme in themes:
+                dataset = DatasetConfig(
+                    name=cfg['name'],
+                    theme=theme,
+                    experiments=experiments,
+                    headers=headers,
+                    dataframe=results_df)
+                datasets[dataset_id] = dataset
+    return datasets

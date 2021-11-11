@@ -18,12 +18,12 @@ import time
 import yaml
 
 from .logs import getExperimentConfigs, getExperimentLogPath
-from .utils import create_dir, generate_shmem_file, PerfConfig, PerfArgParser
+from .utils import create_dir, generate_shmem_file, ExperimentConfig, PerfArgParser
 from .qos import DURABILITY, HISTORY, RELIABILITY
 from .transport import TRANSPORT
 
 
-def prepare_for_shmem(cfg: PerfConfig, output_dir):
+def prepare_for_shmem(cfg: ExperimentConfig, output_dir):
     # TODO(flynneva): check cfg.com_mean if these are applicable
     if cfg.transport == TRANSPORT.ZERO_COPY or cfg.transport == TRANSPORT.SHMEM:
         shmem_config_file = generate_shmem_file(output_dir)
@@ -32,13 +32,13 @@ def prepare_for_shmem(cfg: PerfConfig, output_dir):
         os.environ["CYCLONEDDS_URI"] = shmem_config_file
 
 
-def teardown_from_shmem(cfg: PerfConfig):
+def teardown_from_shmem(cfg: ExperimentConfig):
     if cfg.transport == TRANSPORT.ZERO_COPY or cfg.transport == TRANSPORT.SHMEM:
         os.unsetenv("APEX_MIDDLEWARE_SETTINGS")
         os.unsetenv("CYCLONEDDS_URI")
 
 
-def run_experiment(cfg: PerfConfig, output_dir, overwrite: bool):
+def run_experiment(cfg: ExperimentConfig, output_dir, overwrite: bool):
     lf = getExperimentLogPath(output_dir, cfg)
     if os.path.exists(lf) and not overwrite:
         print(f"Skipping experiment {cfg.log_file_name()} as results already exist in " + output_dir)

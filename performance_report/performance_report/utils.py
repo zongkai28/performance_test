@@ -21,7 +21,7 @@ from .qos import DURABILITY, HISTORY, RELIABILITY
 from .transport import TRANSPORT
 
 
-class PerfConfig:
+class ExperimentConfig:
     def __init__(
         self,
         com_mean: str = "ApexOSPollingSubscription",
@@ -81,26 +81,79 @@ class PerfConfig:
         ]
         str_params = map(str, params)
         return "_".join(str_params) + ".json"
+    
+    def as_dataframe(self) -> pd.DataFrame:
+        return pd.DataFrame({
+            'com_mean': self.com_mean,
+            'transport': self.transport,
+            'msg': self.msg,
+            'pubs': self.pubs,
+            'subs': self.subs,
+            'rate': self.rate,
+            'reliability': self.reliability,
+            'durability': self.durability,
+            'history': self.history,
+            'history_depth': self.history_depth,
+            'max_runtime': self.max_runtime,
+            'ignore_seconds': self.ignore_seconds,
+        }, index=[0])
+
+class LineConfig:
+    def __init__(
+        self,
+        style: str = 'solid',
+        width: int = 2,
+        alpha: float = 1.0
+    ) -> None:
+        self.style = style
+        self.width = width
+        self.alpha = alpha
+
+
+class MarkerConfig:
+    def __init__(
+        self,
+        shape: str = 'dot',
+        size: int = 25,
+        alpha: float = 1.0
+    ) -> None:
+       self.shape = str(shape)
+       self.size = size
+       self.alpha = alpha
+
+
+class ThemeConfig:
+    def __init__(
+        self,
+        color: str = '#0000ff',
+        marker: MarkerConfig = MarkerConfig(),
+        line: LineConfig = LineConfig(),
+    ) -> None:
+        self.color = str(color)
+        self.marker = marker
+        self.line = line
+
+
+class DatasetConfig:
+    def __init__(
+        self,
+        name: str = 'default_dataset',
+        theme: ThemeConfig = ThemeConfig(),
+        experiments: [ExperimentConfig] = [ExperimentConfig()],
+        headers: [(str, dict)] = ['default_experiment', {}],
+        dataframe: pd.DataFrame = pd.DataFrame(),
+    ) -> None:
+        self.name = name
+        self.theme = theme
+        self.experiments = experiments
+        self.headers = headers
+        self.dataframe = dataframe
 
 
 class FileContents:
     def __init__(self, header: dict, dataframe: pd.DataFrame) -> None:
         self.header = header
         self.dataframe = dataframe
-
-
-class DatasetConfig:
-    def __init__(
-        self,
-        name: str,
-        theme: {},
-        headers: "list[dict]",
-        dataframes: pd.DataFrame,
-    ) -> None:
-        self.name = name
-        self.theme = theme
-        self.headers = headers
-        self.dataframes = dataframes
 
 
 class PerfArgParser(argparse.ArgumentParser):

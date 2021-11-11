@@ -1,24 +1,34 @@
 ---
-traces:
-    # default for experiments:
-    #   com_mean: ApexOSPollingSubscription
-    #   transport: INTRA
-    #   msg: Array1k
-    #   pubs: 1
-    #   subs: 1
-    #   rate: 100
-    #   reliability: RELIABLE
-    #   durability: VOLATILE
-    #   history_kind: KEEP_LAST
-    #   history_depth: 16
+datasets:
+  # default for each dataset:
+  #   name: ''
+  #    theme:
+  #      color: '#0000ff'
+  #      marker:
+  #        shape: dot
+  #        size: 25
+  #        alpha: 1.0
+  #      line:
+  #        style: solid
+  #        width: 2
+  #        alpha: 1.0
+  #    experiments:
+  #      - com_mean: ApexOSPollingSubscription
+  #        transport: INTRA
+  #        msg: Array1k
+  #        pubs: 1
+  #        subs: 1
+  #        rate: 100
+  #        reliability: RELIABLE
+  #        durability: VOLATILE
+  #        history_kind: KEEP_LAST
+  #        history_depth: 16
   apex_os_intra_1_subs:
     name: Apex.OS + Apex.Middleware INTRA 1 subs
-    color: '#0000ff'
-    dash: null
+    theme:
+      color: '#0000ff'
     experiments:
-      -
-        com_mean: ApexOSPollingSubscription
-        transport: INTRA
+      - transport: INTRA
         msg:
           - Array1k
           - Array4k
@@ -29,12 +39,10 @@ traces:
           - Array4m
   apex_os_shmem_1_subs:
     name: Apex.OS + Apex.Middleware SHMEM 1 subs
-    color: '#00ff00'
-    dash: null
+    theme:
+      color: '#00ff00'
     experiments:
-      -
-        com_mean: ApexOSPollingSubscription
-        transport: SHMEM
+      - transport: SHMEM
         msg:
           - Array1k
           - Array4k
@@ -45,12 +53,10 @@ traces:
           - Array4m
   apex_os_zc_1_subs:
     name: Apex.OS + Apex.Middleware Zero Copy 1 subs
-    color: '#ff0000'
-    dash: null
+    theme:
+      color: '#ff0000'
     experiments:
-      -
-        com_mean: ApexOSPollingSubscription
-        transport: ZERO_COPY
+      - transport: ZERO_COPY
         msg:
           - Array1k
           - Array4k
@@ -61,12 +67,10 @@ traces:
           - Array4m
   apex_os_zc_3_subs:
     name: Apex.OS + Apex.Middleware Zero Copy 3 subs
-    color: '#bf0000'
-    dash: null
+    theme:
+      color: '#bf0000'
     experiments:
-      -
-        com_mean: ApexOSPollingSubscription
-        transport: ZERO_COPY
+      - transport: ZERO_COPY
         msg:
           - Array1k
           - Array4k
@@ -78,12 +82,10 @@ traces:
         subs: 3
   apex_os_zc_10_subs:
     name: Apex.OS + Apex.Middleware Zero Copy 10 subs
-    color: '#7f0000'
-    dash: null
+    theme:
+      color: '#7f0000'
     experiments:
-      -
-        com_mean: ApexOSPollingSubscription
-        transport: ZERO_COPY
+      - transport: ZERO_COPY
         msg:
           - Array1k
           - Array4k
@@ -95,52 +97,83 @@ traces:
         subs: 10
   apex_os_intra_array1m_100_1_1:
     name: Apex.OS + Apex.Middleware INTRA 1 subs
-    color: '#ff0000'
-    dash: null
+    theme:
+      color: '#ff0000'
     experiments:
-      -
-        com_mean: ApexOSPollingSubscription
-        transport: INTRA
+      - transport: INTRA
         msg: Array1m
         subs: 1
         rate: 100
   apex_os_shmem_array1m_100_1_1:
     name: Apex.OS + Apex.Middleware SHMEM 1 subs
-    color: '#00ff00'
-    dash: null
+    theme:
+      color: '#00ff00'
     experiments:
-      -
-        com_mean: ApexOSPollingSubscription
-        transport: SHMEM
+      - transport: SHMEM
         msg: Array1m
         subs: 1
         rate: 100
   apex_os_zc_array1m_100_1_1:
     name: Apex.OS + Apex.Middleware Zero Copy 1 subs
-    color: '#0000ff'
-    dash: null
+    theme:
+      color: '#0000ff'
     experiments:
-      -
-        com_mean: ApexOSPollingSubscription
-        transport: ZERO_COPY
+      - transport: ZERO_COPY
         msg: Array1m
         subs: 1
         rate: 100
-plots:
-  msg_size_vs_latency_cpu:
-    apex_os_compare_transports:
-      traces:
-        - apex_os_intra_1_subs
-        - apex_os_shmem_1_subs
-        - apex_os_zc_1_subs
-    apex_os_compare_num_subs:
-      traces:
-        - apex_os_zc_1_subs
-        - apex_os_zc_3_subs
-        - apex_os_zc_10_subs
+reports:
   time_vs_latency_cpu_mem:
-    compare_transports:
-      traces:
-        - apex_os_intra_array1m_100_1_1
-        - apex_os_shmem_array1m_100_1_1
-        - apex_os_zc_array1m_100_1_1
+    report_title: Latency, CPU and Memory Usage over Time
+    template_name: test.html
+    figures:
+      - name: compare_apexos_transport
+        title: Comparing different Apex.OS Transports
+        x_axis_label: Time (seconds)
+        y_axis_label: Latency (ms)
+        x_range: T_experiment
+        y_range: latency_mean
+        size:
+          width: 1000
+          height: 600
+        # dataset names must be listed above under the top-level `datasets`
+        datasets:
+          - apex_os_intra_array1m_100_1_1
+          - apex_os_shmem_array1m_100_1_1
+          - apex_os_zc_array1m_100_1_1
+  msg_size_vs_latency_cpu:
+    report_title: Latency over Message Size
+    template_name: test.html
+    figures:
+      - name: compare_apexos_msg_size
+        title: Comparing Latency over Message Size
+        x_axis_label: Message Size
+        y_axis_label: Latency (ms)
+        x_range: msg
+        y_range: latency_mean
+        size:
+          width: 1000
+          height: 600
+        # dataset names must be listed above under the top-level `datasets`
+        datasets:
+          - apex_os_intra_1_subs
+          - apex_os_shmem_1_subs
+          - apex_os_zc_1_subs
+  apex_os_compare_num_subs:
+    report_title: Latency over Number of Subscribers for Zero Copy
+    template_name: test.html
+    figures:
+      - name: compare_apexos_num_subs
+        title: Comparing Latency over Number of Subscribers with Zero Copy
+        x_axis_label: Time (seconds)
+        y_axis_label: Latency (ms)
+        x_range: T_experiment
+        y_range: latency_mean
+        size:
+          width: 1000
+          height: 600
+        # dataset names must be listed above under the top-level `datasets`
+        datasets:
+          - apex_os_zc_1_subs
+          - apex_os_zc_3_subs
+          - apex_os_zc_10_subs

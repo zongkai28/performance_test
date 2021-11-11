@@ -11,11 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import json
 from enum import Enum
 
 
-class DURABILITY(Enum):
+class DURABILITY(int, Enum):
     VOLATILE = 1
     TRANSIENT_LOCAL = 2
 
@@ -35,7 +35,7 @@ class DURABILITY(Enum):
         raise TypeError
 
 
-class HISTORY(Enum):
+class HISTORY(int, Enum):
     KEEP_ALL = 1
     KEEP_LAST = 2
 
@@ -55,7 +55,7 @@ class HISTORY(Enum):
         raise TypeError
 
 
-class RELIABILITY(Enum):
+class RELIABILITY(int, Enum):
     RELIABLE = 1
     BEST_EFFORT = 2
 

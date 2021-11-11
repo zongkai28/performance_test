@@ -11,10 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-import os
-import yaml
 import argparse
+import os
+import pandas as pd
+import yaml
+
 
 from bokeh.embed import components
 from bokeh.models import ColumnDataSource
@@ -38,12 +39,14 @@ def generateReports(report_cfg_file, output_dir):
     )
     with open(report_cfg_file, "r") as f:
         reports_cfg = yaml.load(f, Loader=yaml.FullLoader)
-        dataset_configs = getDatasets(reports_cfg["datasets"], output_dir)
+        datasets = getDatasets(reports_cfg["datasets"], output_dir)
         try:
             for report in reports_cfg['reports']:
+                print('[REPORT] ' + report)
                 for fig in reports_cfg['reports'][report]['figures']:
                     for dataset_name in fig['datasets']:
-                        dataset = dataset_configs[dataset_name]
+                        print('[DATASET] ' + dataset_name)
+                        dataset = datasets[dataset_name]
                         plot = figure(
                             title=fig['title'],
                             x_axis_label=fig['x_axis_label'],
@@ -52,33 +55,27 @@ def generateReports(report_cfg_file, output_dir):
                             plot_height=fig['size']['height'],
                             margin=(10, 10, 10, 10)
                         )
-                        for df in dataset.dataframes:
-                            for col in df:
-                                print(col)
-                            for y_data in fig['y_range']:
-                                scatter_name = y_data + '_' + dataset.theme['marker']['shape']
-                                line_name = y_data + '_line'
-                                plot.scatter(
-                                    name=scatter_name,
-                                    x=fig['x_range'],
-                                    y=y_data,
-                                    source=df,
-                                    marker=dataset.theme['marker']['shape'],
-                                    size=dataset.theme['marker']['size'],
-                                    fill_color=dataset.theme['color'],
-                                    legend_label=scatter_name,
-                                )
-                                plot.line(
-                                    name=line_name,
-                                    x=fig['x_range'],
-                                    y=y_data,
-                                    source=df,
-                                    line_color=dataset.theme['color'],
-                                    line_width=dataset.theme['line']['width'],
-                                    line_alpha=dataset.theme['line']['alpha'],
-                                    legend_label=line_name,
-
-                                )
+                        line_name = dataset.name
+                        scatter_name = line_name + ' ' + dataset.theme.marker.shape
+                        plot.scatter(
+                            name=scatter_name,
+                            x=fig['x_range'],
+                            y=fig['y_range'],
+                            source=dataset.dataframe,
+                            marker=dataset.theme.marker.shape,
+                            size=dataset.theme.marker.size,
+                            fill_color=dataset.theme.color
+                        )
+                        plot.line(
+                            name=line_name,
+                            x=fig['x_range'],
+                            y=fig['y_range'],
+                            source=dataset.dataframe,
+                            line_color=dataset.theme.color,
+                            line_width=dataset.theme.line.width,
+                            line_alpha=dataset.theme.line.alpha,
+                            legend_label=line_name,
+                        )
                         # add hover tool
                         hover = HoverTool()
                         hover.tooltips = [
@@ -94,7 +91,8 @@ def generateReports(report_cfg_file, output_dir):
                     output = template.render(
                         script=str(html_fig[0]),
                         div=str(html_fig[1]))
-                    with open('result.html', 'w') as result:
+                    report_title = reports_cfg['reports'][report]['report_title']
+                    with open(report_title + '.html', 'w') as result:
                         result.write(output)
         except KeyError:
             print("No time_vs_latency_cpu_mem plots specified in given trace yaml file")
