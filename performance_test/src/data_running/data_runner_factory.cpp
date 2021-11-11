@@ -14,6 +14,7 @@
 
 #include "data_runner_factory.hpp"
 
+#include <performance_test/generated_messages/messages.hpp>
 #include <performance_test/for_each.hpp>
 
 #include <string>
@@ -43,7 +44,6 @@
   #include "../communication_abstractions/cyclonedds_communicator.hpp"
 #endif
 #include "data_runner.hpp"
-#include "../experiment_configuration/topics.hpp"
 
 namespace performance_test
 {
@@ -55,7 +55,7 @@ std::shared_ptr<DataRunnerBase> DataRunnerFactory::get(
 {
   std::shared_ptr<DataRunnerBase> ptr;
   performance_test::for_each(
-    topics::TopicTypeList(),
+    messages::MessageTypeList(),
     [&ptr, requested_msg, com_mean, run_type](const auto & msg_type) {
       using T = std::remove_cv_t<std::remove_reference_t<decltype(msg_type)>>;
       if (T::msg_name() == requested_msg) {
