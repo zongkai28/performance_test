@@ -93,6 +93,15 @@ def generateReports(report_cfg_file, output_dir):
                         if is_categorical:
                             plot.x_range.factors = list(df[fig['x_range']])
                             source = ColumnDataSource(df)
+                            plot.scatter(
+                                name=scatter_name,
+                                x=fig['x_range'],
+                                y=fig['y_range'],
+                                source=source,
+                                marker=dataset.theme.marker.shape,
+                                size=dataset.theme.marker.size,
+                                fill_color=dataset.theme.color
+                            )
                             plot.line(
                                 name=line_name,
                                 x=fig['x_range'],
@@ -126,9 +135,7 @@ def generateReports(report_cfg_file, output_dir):
                         # add hover tool
                         hover = HoverTool()
                         hover.tooltips = [
-                            ('Average Latency', '@{latency_mean}{0.0000} ms'),
-                            ('Minimum Latency', '@{latency_min}{0.0000} ms'),
-                            ('Maximum Latency', '@{latency_max}{0.0000} ms'),
+                            (fig['y_axis_label'], '@{' + fig['y_range'] + '}{0.0000} ms'),
                         ]
                         plot.add_tools(hover)
                         script, div = components(plot)
