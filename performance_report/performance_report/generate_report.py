@@ -124,13 +124,13 @@ def generateReports(report_cfg_file, output_dir):
                                 legend_label=line_name,
                             )
                         # add hover tool
-                        #hover = HoverTool()
-                        #hover.tooltips = [
-                        #    ('Average Latency', '@{latency_mean}{0.00}ms'),
-                        #    ('Minimum Latency', '@{latency_min}{0.00}ms'),
-                        #    ('Maximum Latency', '@{latency_max}{0.00}ms'),
-                        #]
-                        #plot.add_tools(hover)
+                        hover = HoverTool()
+                        hover.tooltips = [
+                            ('Average Latency', '@{latency_mean}{0.0000} ms'),
+                            ('Minimum Latency', '@{latency_min}{0.0000} ms'),
+                            ('Maximum Latency', '@{latency_max}{0.0000} ms'),
+                        ]
+                        plot.add_tools(hover)
                         script, div = components(plot)
                         html_figures.append((script, div))
                 for html_fig in html_figures:

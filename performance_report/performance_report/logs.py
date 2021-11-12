@@ -35,8 +35,8 @@ def parseLog(log_dir: str, experiment: ExperimentConfig):
             dataframe = pd.json_normalize(header, 'analysis_results')
             if not dataframe.empty:
                 del header['analysis_results']
-                dataframe['latency_mean (ms)'] = dataframe['latency_mean']
-                dataframe['cpu_usage (%)'] = dataframe['cpu_info_cpu_usage']
+                dataframe['latency_mean_ms'] = dataframe['latency_mean'] * 1000
+                dataframe['cpu_usage (%)'] = dataframe['cpu_info_cpu_usage'] * 100
                 dataframe['ru_maxrss'] = dataframe['sys_tracker_ru_maxrss']
                 dataframe['T_experiment'] = dataframe['experiment_start'] / 1000000000
                 # get experiement settings as dataframe

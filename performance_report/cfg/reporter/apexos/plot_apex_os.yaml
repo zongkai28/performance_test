@@ -132,7 +132,7 @@ reports:
         x_axis_label: Time (seconds)
         y_axis_label: Latency (ms)
         x_range: T_experiment
-        y_range: latency_mean
+        y_range: latency_mean_ms
         size:
           width: 1000
           height: 600
@@ -150,7 +150,7 @@ reports:
         x_axis_label: Message Size
         y_axis_label: Latency (ms)
         x_range: msg
-        y_range: latency_mean
+        y_range: latency_mean_ms
         size:
           width: 1000
           height: 600
@@ -168,7 +168,7 @@ reports:
         x_axis_label: Number of Subscribers
         y_axis_label: Latency (ms)
         x_range: msg
-        y_range: latency_mean
+        y_range: latency_mean_ms
         size:
           width: 1000
           height: 600
