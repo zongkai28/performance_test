@@ -18,7 +18,7 @@ import yaml
 
 
 from bokeh.embed import components
-from bokeh.models import ColumnDataSource
+from bokeh.models import ColumnDataSource, FactorRange
 from bokeh.models.tools import HoverTool
 from bokeh.models.widgets.markups import Div
 from bokeh.models.widgets.tables import DataTable, TableColumn
@@ -44,23 +44,38 @@ def generateReports(report_cfg_file, output_dir):
             for report in reports_cfg['reports']:
                 print('[REPORT] ' + report)
                 for fig in reports_cfg['reports'][report]['figures']:
-                    plot = figure(
-                            title=fig['title'],
-                            x_axis_label=fig['x_axis_label'],
-                            y_axis_label=fig['y_axis_label'],
-                            plot_width=fig['size']['width'],
-                            plot_height=fig['size']['height'],
-                            margin=(10, 10, 10, 10)
-                    )
+                    # time series, normal range
+                    plot = None
+                    is_categorical = False
+                    if fig['x_range'] == 'T_experiment':
+                        plot = figure(
+                                title=fig['title'],
+                                x_axis_label=fig['x_axis_label'],
+                                y_axis_label=fig['y_axis_label'],
+                                plot_width=fig['size']['width'],
+                                plot_height=fig['size']['height'],
+                                margin=(10, 10, 10, 10)
+                        )
+                    else:
+                        # assume catagorical if not a time series
+                        is_categorical = True
+                        plot = figure(
+                                title=fig['title'],
+                                x_axis_label=fig['x_axis_label'],
+                                y_axis_label=fig['y_axis_label'],
+                                x_range=FactorRange(),
+                                plot_width=fig['size']['width'],
+                                plot_height=fig['size']['height'],
+                                margin=(10, 10, 10, 10)
+                        )
                     for dataset_name in fig['datasets']:
                         print('[DATASET] \t' + dataset_name)
                         dataset = datasets[dataset_name]
                         df = dataset.dataframe
                         df_summary = df.describe().reset_index()
-                        is_categorical = False
+                        
                         # filter dataframe based on specified ranges
                         if(len(dataset.experiments) > 1):
-                            is_categorical = True
                             # if multiple experiments in dataset
                             filtered_results = []
                             for experiment in dataset.experiments:
@@ -76,10 +91,13 @@ def generateReports(report_cfg_file, output_dir):
                         scatter_name = line_name + ' ' + dataset.theme.marker.shape
 
                         if is_categorical:
+                            plot.x_range.factors = list(df[fig['x_range']])
+                            source = ColumnDataSource(df)
                             plot.line(
                                 name=line_name,
-                                x=list(df[fig['x_range']]),
-                                y=list(df[fig['y_range']]),
+                                x=fig['x_range'],
+                                y=fig['y_range'],
+                                source=source,
                                 line_color=dataset.theme.color,
                                 line_width=dataset.theme.line.width,
                                 line_alpha=dataset.theme.line.alpha,
