@@ -44,46 +44,75 @@ def generateReports(report_cfg_file, output_dir):
             for report in reports_cfg['reports']:
                 print('[REPORT] ' + report)
                 for fig in reports_cfg['reports'][report]['figures']:
-                    for dataset_name in fig['datasets']:
-                        print('[DATASET] ' + dataset_name)
-                        dataset = datasets[dataset_name]
-                        plot = figure(
+                    plot = figure(
                             title=fig['title'],
                             x_axis_label=fig['x_axis_label'],
                             y_axis_label=fig['y_axis_label'],
                             plot_width=fig['size']['width'],
                             plot_height=fig['size']['height'],
                             margin=(10, 10, 10, 10)
-                        )
+                    )
+                    for dataset_name in fig['datasets']:
+                        print('[DATASET] \t' + dataset_name)
+                        dataset = datasets[dataset_name]
+                        df = dataset.dataframe
+                        df_summary = df.describe().reset_index()
+                        is_categorical = False
+                        # filter dataframe based on specified ranges
+                        if(len(dataset.experiments) > 1):
+                            is_categorical = True
+                            # if multiple experiments in dataset
+                            filtered_results = []
+                            for experiment in dataset.experiments:
+                                exp_df = experiment.as_dataframe()
+                                exp_cols = list(exp_df.columns.values)
+                                matching_rows = dataset.dataframe[exp_cols].stack().isin(exp_df.stack().values).unstack()
+                                result_df = dataset.dataframe[matching_rows.all(axis='columns')]
+                                # default to average of specified range
+                                summary_df = result_df.groupby(experiment.get_members()).mean().reset_index()
+                                filtered_results.append(summary_df)
+                            df = pd.concat(filtered_results, ignore_index=True)
                         line_name = dataset.name
                         scatter_name = line_name + ' ' + dataset.theme.marker.shape
-                        plot.scatter(
-                            name=scatter_name,
-                            x=fig['x_range'],
-                            y=fig['y_range'],
-                            source=dataset.dataframe,
-                            marker=dataset.theme.marker.shape,
-                            size=dataset.theme.marker.size,
-                            fill_color=dataset.theme.color
-                        )
-                        plot.line(
-                            name=line_name,
-                            x=fig['x_range'],
-                            y=fig['y_range'],
-                            source=dataset.dataframe,
-                            line_color=dataset.theme.color,
-                            line_width=dataset.theme.line.width,
-                            line_alpha=dataset.theme.line.alpha,
-                            legend_label=line_name,
-                        )
+
+                        if is_categorical:
+                            plot.line(
+                                name=line_name,
+                                x=list(df[fig['x_range']]),
+                                y=list(df[fig['y_range']]),
+                                line_color=dataset.theme.color,
+                                line_width=dataset.theme.line.width,
+                                line_alpha=dataset.theme.line.alpha,
+                                legend_label=line_name,
+                            )
+                        else:
+                            plot.scatter(
+                                name=scatter_name,
+                                x=fig['x_range'],
+                                y=fig['y_range'],
+                                source=df,
+                                marker=dataset.theme.marker.shape,
+                                size=dataset.theme.marker.size,
+                                fill_color=dataset.theme.color
+                            )
+                            plot.line(
+                                name=line_name,
+                                x=fig['x_range'],
+                                y=fig['y_range'],
+                                source=df,
+                                line_color=dataset.theme.color,
+                                line_width=dataset.theme.line.width,
+                                line_alpha=dataset.theme.line.alpha,
+                                legend_label=line_name,
+                            )
                         # add hover tool
-                        hover = HoverTool()
-                        hover.tooltips = [
-                            ('Average Latency', '@{latency_mean}{0.00}ms'),
-                            ('Minimum Latency', '@{latency_min}{0.00}ms'),
-                            ('Maximum Latency', '@{latency_max}{0.00}ms'),
-                        ]
-                        plot.add_tools(hover)
+                        #hover = HoverTool()
+                        #hover.tooltips = [
+                        #    ('Average Latency', '@{latency_mean}{0.00}ms'),
+                        #    ('Minimum Latency', '@{latency_min}{0.00}ms'),
+                        #    ('Maximum Latency', '@{latency_max}{0.00}ms'),
+                        #]
+                        #plot.add_tools(hover)
                         script, div = components(plot)
                         html_figures.append((script, div))
                 for html_fig in html_figures:

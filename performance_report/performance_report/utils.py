@@ -97,6 +97,15 @@ class ExperimentConfig:
             'max_runtime': self.max_runtime,
             'ignore_seconds': self.ignore_seconds,
         }, index=[0])
+    
+    def get_members(self) -> list:
+        members = []
+        for attribute in dir(self):
+            if not callable(getattr(self, attribute)) and \
+               not attribute.startswith('__'):
+               members.append(attribute)
+        return members
+
 
 class LineConfig:
     def __init__(

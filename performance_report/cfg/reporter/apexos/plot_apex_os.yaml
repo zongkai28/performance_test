@@ -165,9 +165,9 @@ reports:
     figures:
       - name: compare_apexos_num_subs
         title: Comparing Latency over Number of Subscribers with Zero Copy
-        x_axis_label: Time (seconds)
+        x_axis_label: Number of Subscribers
         y_axis_label: Latency (ms)
-        x_range: T_experiment
+        x_range: msg
         y_range: latency_mean
         size:
           width: 1000

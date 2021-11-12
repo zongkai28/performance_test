@@ -15,7 +15,7 @@ import json
 from enum import Enum
 
 
-class DURABILITY(int, Enum):
+class DURABILITY(str, Enum):
     VOLATILE = 1
     TRANSIENT_LOCAL = 2
 
@@ -35,7 +35,7 @@ class DURABILITY(int, Enum):
         raise TypeError
 
 
-class HISTORY(int, Enum):
+class HISTORY(str, Enum):
     KEEP_ALL = 1
     KEEP_LAST = 2
 
@@ -55,7 +55,7 @@ class HISTORY(int, Enum):
         raise TypeError
 
 
-class RELIABILITY(int, Enum):
+class RELIABILITY(str, Enum):
     RELIABLE = 1
     BEST_EFFORT = 2
 
