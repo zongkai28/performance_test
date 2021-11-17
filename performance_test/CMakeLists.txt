@@ -196,6 +196,8 @@ endif()
 if(PERFORMANCE_TEST_RCLCPP_ENABLED)
   list(APPEND sources src/communication_abstractions/rclcpp_communicator.hpp)
   list(APPEND sources src/communication_abstractions/rclcpp_callback_communicator.hpp)
+  list(APPEND sources src/data_running/factories/rclcpp_ste_data_runner_factory.cpp)
+  list(APPEND sources src/data_running/factories/rclcpp_ste_data_runner_factory.hpp)
 endif()
 
 if(PERFORMANCE_TEST_FASTRTPS_ENABLED)
