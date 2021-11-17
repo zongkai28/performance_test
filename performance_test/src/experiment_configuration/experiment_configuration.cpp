@@ -25,7 +25,8 @@
 #include <cyclone_dds_vendor/dds.hpp>
 #endif
 
-#ifdef PERFORMANCE_TEST_RCLCPP_ENABLED
+#if defined(PERFORMANCE_TEST_RCLCPP_ENABLED) \
+  || defined(PERFORMANCE_TEST_APEX_OS_POLLING_SUBSCRIPTION_ENABLED)
 #include <rclcpp/rclcpp.hpp>
 #include <rmw/rmw.h>
 #endif
@@ -429,7 +430,8 @@ void ExperimentConfiguration::setup(int argc, char ** argv)
       throw std::invalid_argument("Invalid roundtrip mode: " + mode);
     }
 
-#ifdef PERFORMANCE_TEST_RCLCPP_ENABLED
+#if defined(PERFORMANCE_TEST_RCLCPP_ENABLED) \
+    || defined(PERFORMANCE_TEST_APEX_OS_POLLING_SUBSCRIPTION_ENABLED)
     m_rmw_implementation = rmw_get_implementation_identifier();
 #else
     m_rmw_implementation = "N/A";
@@ -656,7 +658,8 @@ void ExperimentConfiguration::check_setup() const
 
 bool ExperimentConfiguration::exit_requested() const
 {
-#ifdef PERFORMANCE_TEST_RCLCPP_ENABLED
+#if defined(PERFORMANCE_TEST_RCLCPP_ENABLED) \
+  || defined(PERFORMANCE_TEST_APEX_OS_POLLING_SUBSCRIPTION_ENABLED)
   return use_ros2_layers() && !rclcpp::ok();
 #else
   return false;

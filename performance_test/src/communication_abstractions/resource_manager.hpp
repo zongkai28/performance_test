@@ -48,7 +48,8 @@
   #include <dds/DCPS/StaticIncludes.h>
 #endif
 
-#ifdef PERFORMANCE_TEST_RCLCPP_ENABLED
+#if defined(PERFORMANCE_TEST_RCLCPP_ENABLED) \
+  || defined(PERFORMANCE_TEST_APEX_OS_POLLING_SUBSCRIPTION_ENABLED)
   #include <rclcpp/rclcpp.hpp>
 #endif
 
@@ -81,7 +82,8 @@ public:
   ResourceManager & operator=(ResourceManager const &) = delete;
   ResourceManager & operator=(ResourceManager &&) = delete;
 
-#ifdef PERFORMANCE_TEST_RCLCPP_ENABLED
+#if defined(PERFORMANCE_TEST_RCLCPP_ENABLED) \
+  || defined(PERFORMANCE_TEST_APEX_OS_POLLING_SUBSCRIPTION_ENABLED)
   /// Returns the ROS 2 node.
   std::shared_ptr<rclcpp::Node> rclcpp_node() const;
 #endif
@@ -160,7 +162,8 @@ public:
 private:
   ResourceManager()
   : m_ec(ExperimentConfiguration::get())
-#ifdef PERFORMANCE_TEST_RCLCPP_ENABLED
+#if defined(PERFORMANCE_TEST_RCLCPP_ENABLED) \
+    || defined(PERFORMANCE_TEST_APEX_OS_POLLING_SUBSCRIPTION_ENABLED)
     , m_node(nullptr)
 #endif
 #ifdef PERFORMANCE_TEST_FASTRTPS_ENABLED
@@ -184,7 +187,8 @@ private:
 
   const ExperimentConfiguration & m_ec;
 
-#ifdef PERFORMANCE_TEST_RCLCPP_ENABLED
+#if defined(PERFORMANCE_TEST_RCLCPP_ENABLED) \
+  || defined(PERFORMANCE_TEST_APEX_OS_POLLING_SUBSCRIPTION_ENABLED)
   mutable std::shared_ptr<rclcpp::Node> m_node;
 #endif
 

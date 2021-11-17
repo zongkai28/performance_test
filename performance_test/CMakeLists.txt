@@ -158,18 +158,32 @@ if(PERFORMANCE_TEST_OPENDDS_ENABLED)
 endif()
 
 
-add_subdirectory(msg)
-include_directories(${IDLGEN_INCLUDE_DIR})
-
-
 # Apex.OS Waitset and Polling Subscription
 option(PERFORMANCE_TEST_APEX_OS_POLLING_SUBSCRIPTION_ENABLED "Option to enable Polling Subscription Plugin.
   The plugin can only work if ApexOS is present, otherwise it will fail." ON)
+
+if(PERFORMANCE_TEST_APEX_OS_POLLING_SUBSCRIPTION_ENABLED)
+  find_library(APEXCPP_LIB apexcpp)
+  if(NOT APEXCPP_LIB)
+    message(WARNING "ApexOSPollingSubscription not found, disabling")
+    set(PERFORMANCE_TEST_APEX_OS_POLLING_SUBSCRIPTION_ENABLED OFF)
+  else()
+    find_package(rclcpp REQUIRED)
+    find_package(rmw REQUIRED)
+    find_package(rosidl_default_generators REQUIRED)
+    add_definitions(-DPERFORMANCE_TEST_APEX_OS_POLLING_SUBSCRIPTION_ENABLED)
+  endif()
+endif()
 
 option(APEX_CERT "Set to true if building against Apex.OS Cert" OFF)
 if(APEX_CERT)
   add_definitions(-DAPEX_CERT)
 endif()
+
+# IDL file compilation
+add_subdirectory(msg)
+include_directories(${IDLGEN_INCLUDE_DIR})
+
 
 set(${PROJECT_NAME}_SOURCES
     src/experiment_execution/analyze_runner.cpp)
@@ -214,17 +228,12 @@ endif()
 
 if(PERFORMANCE_TEST_RCLCPP_ENABLED)
   list(APPEND sources src/communication_abstractions/rclcpp_callback_communicator.hpp)
+  list(APPEND sources src/data_running/factories/rclcpp_ste_data_runner_factory.cpp)
+  list(APPEND sources src/data_running/factories/rclcpp_ste_data_runner_factory.hpp)
 endif()
 
 if(PERFORMANCE_TEST_APEX_OS_POLLING_SUBSCRIPTION_ENABLED)
-  find_library(APEXCPP_LIB apexcpp)
-  if(NOT APEXCPP_LIB)
-    message(WARNING "ApexOSPollingSubscription not found, only ROS 2 callbacks are available")
-  else()
-    message(INFO "ApexOSPollingSubscription found")
-    add_definitions(-DPERFORMANCE_TEST_APEX_OS_POLLING_SUBSCRIPTION_ENABLED)
-    list(APPEND sources src/communication_abstractions/apex_os_polling_subscription_communicator.hpp)
-  endif()
+  list(APPEND sources src/communication_abstractions/apex_os_polling_subscription_communicator.hpp)
 endif()
 
 if(PERFORMANCE_TEST_RCLCPP_ENABLED OR PERFORMANCE_TEST_APEX_OS_POLLING_SUBSCRIPTION_ENABLED)
@@ -335,7 +344,7 @@ execute_process(
 )
 add_definitions(-DPERFORMANCE_TEST_VERSION="${PERF_TEST_VERSION}")
 
-if(PERFORMANCE_TEST_RCLCPP_ENABLED)
+if(PERFORMANCE_TEST_RCLCPP_ENABLED OR PERFORMANCE_TEST_APEX_OS_POLLING_SUBSCRIPTION_ENABLED)
   if(APEX_CERT)
     set(TYPESUPPORT_INTERFACE rosidl_typesupport_apex_middleware_cpp)
   else()
