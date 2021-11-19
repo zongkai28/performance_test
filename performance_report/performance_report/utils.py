@@ -207,10 +207,20 @@ class PerfArgParser(argparse.ArgumentParser):
         print('EXIT')
 
 
+class cliColors:
+    ESCAPE = '\033'
+    GREEN = ESCAPE + '[92m'
+    WARN = ESCAPE + '[93m'
+    ERROR = ESCAPE + '[91m'
+    ENDCOLOR = ESCAPE + '[0m'
+
+
 def create_dir(dir_path) -> bool:
     try:
-        os.makedirs(dir_path, exist_ok=True)
+        os.makedirs(dir_path)
         return True
+    except FileExistsError:
+        print(cliColors.WARN + 'Log directory already exists' + cliColors.ENDCOLOR)
     except FileNotFoundError:
         # given path is not viable
         return False

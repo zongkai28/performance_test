@@ -17,8 +17,8 @@ import os
 import time
 import yaml
 
-from .logs import getExperimentConfigs, getExperimentLogPath
-from .utils import create_dir, generate_shmem_file, ExperimentConfig, PerfArgParser
+from .logs import getExperiments, getExperimentLogPath
+from .utils import cliColors, create_dir, generate_shmem_file, ExperimentConfig, PerfArgParser
 from .qos import DURABILITY, HISTORY, RELIABILITY
 from .transport import TRANSPORT
 
@@ -27,7 +27,7 @@ def prepare_for_shmem(cfg: ExperimentConfig, output_dir):
     # TODO(flynneva): check cfg.com_mean if these are applicable
     if cfg.transport == TRANSPORT.ZERO_COPY or cfg.transport == TRANSPORT.SHMEM:
         shmem_config_file = generate_shmem_file(output_dir)
-        print("[Warning] RouDi is expected to already be running")
+        print(cliColors.WARN + "[Warning] RouDi is expected to already be running" + cliColors.ENDCOLOR)
         os.environ["APEX_MIDDLEWARE_SETTINGS"] = shmem_config_file
         os.environ["CYCLONEDDS_URI"] = shmem_config_file
 
@@ -41,10 +41,10 @@ def teardown_from_shmem(cfg: ExperimentConfig):
 def run_experiment(cfg: ExperimentConfig, output_dir, overwrite: bool):
     lf = getExperimentLogPath(output_dir, cfg)
     if os.path.exists(lf) and not overwrite:
-        print(f"Skipping experiment {cfg.log_file_name()} as results already exist in " + output_dir)
+        print(cliColors.WARN + f"Skipping experiment {cfg.log_file_name()} as results already exist in " + output_dir + cliColors.ENDCOLOR)
         return
     else:
-        print(f"Running experiment {cfg.log_file_name()}")
+        print(cliColors.GREEN + f"Running experiment {cfg.log_file_name()}" + cliColors.ENDCOLOR)
 
     cmd = "ros2 run performance_test perf_test"
     cmd += f" -c {cfg.com_mean}"
@@ -83,7 +83,7 @@ def run_experiments(files: "list[str]", output_dir, overwrite: bool):
         with open(run_file, "r") as f:
             run_cfg = yaml.load(f, Loader=yaml.FullLoader)
 
-        run_configs = getExperimentConfigs(run_cfg["experiments"])
+        run_configs = getExperiments(run_cfg["experiments"])
 
         for run_config in run_configs:
             run_experiment(run_config, output_dir, overwrite)
