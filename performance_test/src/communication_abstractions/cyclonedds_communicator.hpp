@@ -126,8 +126,7 @@ public:
       }
     }
     lock();
-    m_data.time = time;
-    m_data.id = next_sample_id();
+    init_msg(m_data, time);
     increment_sent();  // We increment before publishing so we don't have to lock twice.
     unlock();
     if (dds_write(m_datawriter, static_cast<void *>(&m_data)) < 0) {
