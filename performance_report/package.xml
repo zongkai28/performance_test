@@ -7,7 +7,10 @@
   <maintainer email="evan.flynn@apex.ai">evan.flynn</maintainer>
   <license>Apache 2.0</license>
 
+  <exec_depend>performance_test</exec_depend>
   <exec_depend>python3-bokeh-pip</exec_depend>
+  <exec_depend>python-selenium-pip</exec_depend>
+  <exec_depend>chromium-browser</exec_depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>

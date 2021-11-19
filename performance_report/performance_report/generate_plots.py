@@ -16,50 +16,23 @@ import os
 import yaml
 import argparse
 
-from .logs import getTraceConfigs
-from .figures import msg_size_vs_latency_cpu, time_vs_latency_cpu_mem
+from bokeh.io import export_png
+
+from .logs import getDatasets
+from .figures import generateFigure
 from .utils import create_dir, PerfArgParser
 
 
-def generate_plots(plot_cfg_file, output_dir):
+def generatePlots(plot_cfg_file, output_dir):
     with open(plot_cfg_file, "r") as f:
-        plots_yaml = yaml.load(f, Loader=yaml.FullLoader)
-        trace_configs = getTraceConfigs(plots_yaml["traces"], output_dir)
+        plots_cfg = yaml.load(f, Loader=yaml.FullLoader)
+        datasets = getDatasets(plots_cfg["datasets"], output_dir)
         try:
-            for plot_id, plot_details in plots_yaml["plots"][
-                "msg_size_vs_latency_cpu"
-            ].items():
-                traces_configs = [
-                    trace_configs[trace_id] for trace_id in plot_details["traces"]
-                ]
-                latency_fig, cpu_fig = msg_size_vs_latency_cpu(traces_configs)
-                latency_fig.write_image(
-                    os.path.join(output_dir, plot_id + "_latency.png")
-                )
-                cpu_fig.write_image(os.path.join(output_dir, plot_id + "_cpu.png"))
+            for plot in plots_cfg["plots"]:
+                fig = generateFigure(plot, datasets)
+                export_png(fig, filename=plot['name'] + '.png')
         except KeyError:
             print("No msg_size_vs_latency_cpu plots specified in given trace yaml file")
-
-        try:
-            for plot_id, plot_details in plots_yaml["plots"][
-                "time_vs_latency_cpu_mem"
-            ].items():
-                traces_configs = [
-                    trace_configs[trace_id] for trace_id in plot_details["traces"]
-                ]
-                try:
-                    latency_fig, cpu_fig, mem_fig = time_vs_latency_cpu_mem(traces_configs)
-                except ValueError as e:
-                    print(e)
-                    print("Skipping generating figure for " + plot_id)
-                    continue
-                latency_fig.write_image(
-                    os.path.join(output_dir, plot_id + "_latency.png")
-                )
-                cpu_fig.write_image(os.path.join(output_dir, plot_id + "_cpu.png"))
-                mem_fig.write_image(os.path.join(output_dir, plot_id + "_mem.png"))
-        except KeyError:
-            print("No time_vs_latency_cpu_mem plots specified in given trace yaml file")
 
 
 def main():
@@ -72,7 +45,7 @@ def main():
 
     log_dir = os.path.join(log_dir, test_name)
     for plot_cfg_file in plot_cfg_files:
-        generate_plots(plot_cfg_file, log_dir)
+        generatePlots(plot_cfg_file, log_dir)
 
 
 if __name__ == "__main__":
