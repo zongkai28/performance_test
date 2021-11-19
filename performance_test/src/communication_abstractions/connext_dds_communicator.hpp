@@ -149,8 +149,7 @@ public:
       }
     }
     lock();
-    m_data.time = time;
-    m_data.id = next_sample_id();
+    init_msg(m_data, time);
     increment_sent();  // We increment before publishing so we don't have to lock twice.
     unlock();
     auto retcode = m_typed_datawriter->write(m_data, DDS_HANDLE_NIL);
