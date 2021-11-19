@@ -1,23 +1,34 @@
 ---
-traces:
-    # default for experiments:
-    #   com_mean: ApexOSPollingSubscription
-    #   transport: INTRA
-    #   msg: Array1k
-    #   pubs: 1
-    #   subs: 1
-    #   rate: 100
-    #   reliability: RELIABLE
-    #   durability: VOLATILE
-    #   history_kind: KEEP_LAST
-    #   history_depth: 16
-  apex_os_intra_1_subs:
-    name: Apex.OS + Apex.Middleware INTRA 1 subs
-    color: '#0000ff'
-    dash: null
+datasets:
+  # default for each dataset:
+  #   name: ''
+  #    theme:
+  #      color: '#0000ff'
+  #      marker:
+  #        shape: dot
+  #        size: 25
+  #        alpha: 1.0
+  #      line:
+  #        style: solid
+  #        width: 2
+  #        alpha: 1.0
+  #    experiments:
+  #      - com_mean: rosPollingSubscription
+  #        transport: INTRA
+  #        msg: Array1k
+  #        pubs: 1
+  #        subs: 1
+  #        rate: 100
+  #        reliability: RELIABLE
+  #        durability: VOLATILE
+  #        history_kind: KEEP_LAST
+  #        history_depth: 16
+  ros_singlethreaded_intra_1_subs:
+    name: Default ROS 2 INTRA 1 subs
+    theme:
+      color: '#0000ff'
     experiments:
-      -
-        com_mean: ApexOSPollingSubscription
+      - com_mean: rclcpp-single-threaded-executor
         transport: INTRA
         msg:
           - Array1k
@@ -27,13 +38,12 @@ traces:
           - Array256k
           - Array1m
           - Array4m
-  apex_os_shmem_1_subs:
-    name: Apex.OS + Apex.Middleware SHMEM 1 subs
-    color: '#00ff00'
-    dash: null
+  ros_singlethreaded_shmem_1_subs:
+    name: Default ROS 2 SHMEM 1 subs
+    theme:
+      color: '#00ff00'
     experiments:
-      -
-        com_mean: ApexOSPollingSubscription
+      - com_mean: rclcpp-single-threaded-executor
         transport: SHMEM
         msg:
           - Array1k
@@ -43,13 +53,12 @@ traces:
           - Array256k
           - Array1m
           - Array4m
-  apex_os_zc_1_subs:
-    name: Apex.OS + Apex.Middleware Zero Copy 1 subs
-    color: '#ff0000'
-    dash: null
+  ros_singlethreaded_zc_1_subs:
+    name: Default ROS 2 Zero Copy 1 subs
+    theme:
+      color: '#ff0000'
     experiments:
-      -
-        com_mean: ApexOSPollingSubscription
+      - com_mean: rclcpp-single-threaded-executor
         transport: ZERO_COPY
         msg:
           - Array1k
@@ -59,13 +68,12 @@ traces:
           - Array256k
           - Array1m
           - Array4m
-  apex_os_zc_3_subs:
-    name: Apex.OS + Apex.Middleware Zero Copy 3 subs
-    color: '#bf0000'
-    dash: null
+  ros_singlethreaded_zc_3_subs:
+    name: Default ROS 2 Zero Copy 3 subs
+    theme:
+      color: '#bf0000'
     experiments:
-      -
-        com_mean: ApexOSPollingSubscription
+      - com_mean: rclcpp-single-threaded-executor
         transport: ZERO_COPY
         msg:
           - Array1k
@@ -76,13 +84,12 @@ traces:
           - Array1m
           - Array4m
         subs: 3
-  apex_os_zc_10_subs:
-    name: Apex.OS + Apex.Middleware Zero Copy 10 subs
-    color: '#7f0000'
-    dash: null
+  ros_singlethreaded_zc_10_subs:
+    name: Default ROS 2 Zero Copy 10 subs
+    theme:
+      color: '#7f0000'
     experiments:
-      -
-        com_mean: ApexOSPollingSubscription
+      - com_mean: rclcpp-single-threaded-executor
         transport: ZERO_COPY
         msg:
           - Array1k
@@ -93,54 +100,102 @@ traces:
           - Array1m
           - Array4m
         subs: 10
-  apex_os_intra_array1m_100_1_1:
-    name: Apex.OS + Apex.Middleware INTRA 1 subs
-    color: '#ff0000'
-    dash: null
+  ros_singlethreaded_intra_array1m_100_1_1:
+    name: Default ROS 2 INTRA 1 subs
+    theme:
+      color: '#ff0000'
     experiments:
-      -
-        com_mean: ApexOSPollingSubscription
+      - com_mean: rclcpp-single-threaded-executor
         transport: INTRA
         msg: Array1m
         subs: 1
         rate: 100
-  apex_os_shmem_array1m_100_1_1:
-    name: Apex.OS + Apex.Middleware SHMEM 1 subs
-    color: '#00ff00'
-    dash: null
+  ros_singlethreaded_shmem_array1m_100_1_1:
+    name: Default ROS 2 SHMEM 1 subs
+    theme:
+      color: '#00ff00'
     experiments:
-      -
-        com_mean: ApexOSPollingSubscription
+      - com_mean: rclcpp-single-threaded-executor
         transport: SHMEM
         msg: Array1m
         subs: 1
         rate: 100
-  apex_os_zc_array1m_100_1_1:
-    name: Apex.OS + Apex.Middleware Zero Copy 1 subs
-    color: '#0000ff'
-    dash: null
+  ros_singlethreaded_zc_array1m_100_1_1:
+    name: Default ROS 2 Zero Copy 1 subs
+    theme:
+      color: '#0000ff'
     experiments:
-      -
-        com_mean: ApexOSPollingSubscription
+      - com_mean: rclcpp-single-threaded-executor
         transport: ZERO_COPY
         msg: Array1m
         subs: 1
         rate: 100
-plots:
+reports:
+  time_vs_latency:
+    report_title: Latency, CPU and Memory Usage over Time
+    template_name: test.html
+    figures:
+      - name: compare_ros_transport
+        title: Comparing different ROS 2 Transports
+        x_axis_label: Time (seconds)
+        y_axis_label: Latency (ms)
+        x_range: T_experiment
+        y_range: latency_mean_ms
+        size:
+          width: 1000
+          height: 600
+        # dataset names must be listed above under the top-level `datasets`
+        datasets:
+          - ros_singlethreaded_intra_array1m_100_1_1
+          - ros_singlethreaded_shmem_array1m_100_1_1
+          - ros_singlethreaded_zc_array1m_100_1_1
+      - name: compare_ros_transport_cpu_usage
+        title: Comparing different ROS 2 Transports CPU Usage (%)
+        x_axis_label: Time (seconds)
+        y_axis_label: CPU Usage (%)
+        x_range: T_experiment
+        y_range: cpu_usage_percent
+        size:
+          width: 1000
+          height: 600
+        # dataset names must be listed above under the top-level `datasets`
+        datasets:
+          - ros_singlethreaded_intra_array1m_100_1_1
+          - ros_singlethreaded_shmem_array1m_100_1_1
+          - ros_singlethreaded_zc_array1m_100_1_1
   msg_size_vs_latency_cpu:
-    apex_os_compare_transports:
-      traces:
-        - apex_os_intra_1_subs
-        - apex_os_shmem_1_subs
-        - apex_os_zc_1_subs
-    apex_os_compare_num_subs:
-      traces:
-        - apex_os_zc_1_subs
-        - apex_os_zc_3_subs
-        - apex_os_zc_10_subs
-  time_vs_latency_cpu_mem:
-    compare_transports:
-      traces:
-        - apex_os_intra_array1m_100_1_1
-        - apex_os_shmem_array1m_100_1_1
-        - apex_os_zc_array1m_100_1_1
+    report_title: Latency over Message Size
+    template_name: test.html
+    figures:
+      - name: compare_ros_msg_size
+        title: Comparing Latency over Message Size
+        x_axis_label: Message Size
+        y_axis_label: Latency (ms)
+        x_range: msg
+        y_range: latency_mean_ms
+        size:
+          width: 1000
+          height: 600
+        # dataset names must be listed above under the top-level `datasets`
+        datasets:
+          - ros_singlethreaded_intra_1_subs
+          - ros_singlethreaded_shmem_1_subs
+          - ros_singlethreaded_zc_1_subs
+  ros_singlethreaded_compare_num_subs:
+    report_title: Latency over Number of Subscribers for Zero Copy
+    template_name: test.html
+    figures:
+      - name: compare_ros_num_subs
+        title: Comparing Latency over Number of Subscribers with Zero Copy
+        x_axis_label: Number of Subscribers
+        y_axis_label: Latency (ms)
+        x_range: msg
+        y_range: latency_mean_ms
+        size:
+          width: 1000
+          height: 600
+        # dataset names must be listed above under the top-level `datasets`
+        datasets:
+          - ros_singlethreaded_zc_1_subs
+          - ros_singlethreaded_zc_3_subs
+          - ros_singlethreaded_zc_10_subs

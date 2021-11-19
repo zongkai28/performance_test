@@ -1,27 +1,45 @@
 ---
-traces:
-    # default for experiments:
-    #   com_mean: ApexOSPollingSubscription
-    #   transport: INTRA
-    #   msg: Array1k
-    #   pubs: 1
-    #   subs: 1
-    #   rate: 100
-    #   reliability: RELIABLE
-    #   durability: VOLATILE
-    #   history_kind: KEEP_LAST
-    #   history_depth: 16
-  rclcpp_intra_1_subs:
-    title: RCLCPP Single Threaded Executor, 1 pub 1 sub Array1k
-    color: '#0000ff'
-    dash: null
+datasets:
+  # default for each dataset:
+  #   name: ''
+  #    theme:
+  #      color: '#0000ff'
+  #      marker:
+  #        shape: dot
+  #        size: 25
+  #        alpha: 1.0
+  #      line:
+  #        style: solid
+  #        width: 2
+  #        alpha: 1.0
+  #    experiments:
+  #      - com_mean: ApexOSPollingSubscription
+  #        transport: INTRA
+  #        msg: Array1k
+  #        pubs: 1
+  #        subs: 1
+  #        rate: 100
+  #        reliability: RELIABLE
+  #        durability: VOLATILE
+  #        history_kind: KEEP_LAST
+  #        history_depth: 16
+  ros_singlethreaded_intra_1_subs:
+    name: Default ROS 2 INTRA 1 subs
+    theme:
+      color: '#652342'
     experiments:
-      -
-        com_mean: rclcpp-single-threaded-executor
-        transport: INTRA
+      - com_mean: rclcpp-single-threaded-executor
         msg: Array16k
 plots:
-  time_vs_latency_cpu_mem:
-    rclcpp_compare_transports:
-      traces:
-        - rclcpp_intra_1_subs
+  - name: compare_ros_transport
+    title: Comparing different ROS 2 Transports
+    x_axis_label: Time (seconds)
+    y_axis_label: Latency (ms)
+    x_range: T_experiment
+    y_range: latency_mean
+    size:
+      width: 1000
+      height: 600
+    # dataset names must be listed above
+    datasets:
+      - ros_singlethreaded_intra_1_subs
