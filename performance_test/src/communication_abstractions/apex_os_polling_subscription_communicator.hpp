@@ -61,10 +61,22 @@ public:
       const auto loaned_msg = m_polling_subscription->take(RCLCPP_LENGTH_UNLIMITED);
       for (const auto msg : loaned_msg) {
         if (msg.info().valid()) {
-          this->template callback(msg.data());
+          handle_message(msg);
         }
       }
     }
+  }
+
+  // Use data_copy() with unbounded message types
+  template<typename T>
+  auto handle_message(T & msg)->decltype (msg.data_copy(), void ()) {
+    this->template callback(msg.data_copy());
+  }
+
+  // Use data() by default
+  template<typename T>
+  auto handle_message(T & msg)->decltype (msg.data(), void ()) {
+    this->template callback(msg.data());
   }
 
 private:
