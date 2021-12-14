@@ -68,8 +68,6 @@ protected:
    * \param sample_id The sample id to check.
    */
   void update_lost_samples_counter(const std::uint64_t sample_id);
-  /// Returns the last sample id received.
-  std::uint64_t prev_sample_id() const;
 
   /// The experiment configuration.
   const ExperimentConfiguration & m_ec;
@@ -141,7 +139,8 @@ protected:
   ensure_fixed_size(T &) {}
 
 private:
-  std::uint64_t m_prev_sample_id;
+  std::uint64_t m_prev_sent_sample_id;
+  std::uint64_t m_prev_received_sample_id;
   std::uint64_t m_num_lost_samples;
   std::uint64_t m_received_sample_counter;
   std::uint64_t m_sent_sample_counter;

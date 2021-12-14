@@ -171,6 +171,7 @@ public:
   {
     return m_external_info;
   }
+  bool intra_thread() const;
 
 private:
   ExperimentConfiguration();
@@ -213,6 +214,8 @@ private:
   std::string m_perf_test_version;
 
   ExternalInfoStorage m_external_info;
+
+  bool m_intra_thread;
 };
 
 std::string to_string(const ExperimentConfiguration::RoundTripMode e);

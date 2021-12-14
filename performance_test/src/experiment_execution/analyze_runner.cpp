@@ -36,13 +36,18 @@ AnalyzeRunner::AnalyzeRunner()
 : m_ec(ExperimentConfiguration::get()),
   m_is_first_entry(true)
 {
-  for (uint32_t i = 0; i < m_ec.number_of_publishers(); ++i) {
-    m_pub_runners.push_back(
-      DataRunnerFactory::get(m_ec.msg_name(), m_ec.com_mean(), RunType::PUBLISHER));
-  }
-  for (uint32_t i = 0; i < m_ec.number_of_subscribers(); ++i) {
+  if (m_ec.intra_thread()) {
     m_sub_runners.push_back(
-      DataRunnerFactory::get(m_ec.msg_name(), m_ec.com_mean(), RunType::SUBSCRIBER));
+      DataRunnerFactory::get(m_ec.msg_name(), m_ec.com_mean(), RunType::BOTH));
+  } else {
+    for (uint32_t i = 0; i < m_ec.number_of_publishers(); ++i) {
+      m_pub_runners.push_back(
+        DataRunnerFactory::get(m_ec.msg_name(), m_ec.com_mean(), RunType::PUBLISHER));
+    }
+    for (uint32_t i = 0; i < m_ec.number_of_subscribers(); ++i) {
+      m_sub_runners.push_back(
+        DataRunnerFactory::get(m_ec.msg_name(), m_ec.com_mean(), RunType::SUBSCRIBER));
+    }
   }
   for (const auto & output : m_ec.configured_outputs()) {
     bind_output(output);

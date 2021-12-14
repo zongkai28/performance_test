@@ -34,7 +34,8 @@ enum class RunType
   /// Indicates to sending/publish data.
   PUBLISHER,
   /// Indicates to receive/subscribe to data.
-  SUBSCRIBER
+  SUBSCRIBER,
+  BOTH
 };
 
 /// Interface for generic object which effectively executes the experiment and collects the
