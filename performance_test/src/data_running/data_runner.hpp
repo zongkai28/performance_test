@@ -73,36 +73,36 @@ public:
 
   uint64_t sum_received_samples() const override
   {
-    if (m_run_type == RunType::PUBLISHER) {
-      throw std::logic_error("Not available on a publisher.");
+    if (!is_subscriber()) {
+      throw std::logic_error("Only available on a subscriber.");
     }
     return m_sum_received_samples;
   }
   uint64_t sum_lost_samples() const override
   {
-    if (m_run_type == RunType::PUBLISHER) {
-      throw std::logic_error("Not available on a publisher.");
+    if (!is_subscriber()) {
+      throw std::logic_error("Only available on a subscriber.");
     }
     return m_sum_lost_samples;
   }
   uint64_t sum_sent_samples() const override
   {
-    if (m_run_type == RunType::SUBSCRIBER) {
-      throw std::logic_error("Not available on a subscriber.");
+    if (!is_publisher()) {
+      throw std::logic_error("Only available on a publisher.");
     }
     return m_sum_sent_samples;
   }
   std::size_t sum_data_received() const override
   {
-    if (m_run_type == RunType::PUBLISHER) {
-      throw std::logic_error("Not available on a publisher.");
+    if (!is_subscriber()) {
+      throw std::logic_error("Only available on a subscriber.");
     }
     return m_sum_received_data;
   }
   StatisticsTracker latency_statistics() const override
   {
-    if (m_run_type == RunType::PUBLISHER) {
-      throw std::logic_error("Not available on a publisher.");
+    if (!is_subscriber()) {
+      throw std::logic_error("Only available on a subscriber.");
     }
     return m_latency_statistics;
   }
@@ -117,13 +117,13 @@ public:
     m_lock.lock();
     sc::duration<double> iteration_duration = now - m_last_sync;
 
-    if (m_run_type == RunType::PUBLISHER) {
+    if (is_publisher()) {
       m_sum_sent_samples = static_cast<decltype(m_sum_sent_samples)>(
         static_cast<double>(m_com.num_sent_samples()) / iteration_duration.count());
       m_sum_lost_samples = static_cast<decltype(m_sum_lost_samples)>(
         static_cast<double>(m_com.num_lost_samples()) / iteration_duration.count());
     }
-    if (m_run_type == RunType::SUBSCRIBER) {
+    if (is_subscriber()) {
       m_sum_received_samples = static_cast<decltype(m_sum_received_samples)>(
         static_cast<double>(m_com.num_received_samples()) / iteration_duration.count());
       m_sum_received_data = static_cast<decltype(m_sum_received_data)>(
@@ -141,6 +141,16 @@ public:
   }
 
 private:
+  bool is_publisher() const
+  {
+    return m_run_type == RunType::PUBLISHER || m_run_type == RunType::BOTH;
+  }
+
+  bool is_subscriber() const
+  {
+    return m_run_type == RunType::SUBSCRIBER || m_run_type == RunType::BOTH;
+  }
+
   /// The function running inside the thread doing all the work.
   void thread_function()
   {
@@ -153,7 +163,7 @@ private:
     std::size_t loop_counter = 1;
 
     while (m_run) {
-      if (m_run_type == RunType::PUBLISHER &&
+      if (is_publisher() &&
         m_ec.roundtrip_mode() != ExperimentConfiguration::RoundTripMode::RELAY)
       {
 #if defined(QNX)
@@ -164,7 +174,7 @@ private:
 #endif
         m_com.publish(epoc_time);
       }
-      if (m_run_type == RunType::SUBSCRIBER) {
+      if (is_subscriber()) {
         m_com.update_subscription();
       }
       const std::chrono::nanoseconds reserve = next_run - perf_clock::now();
@@ -172,7 +182,7 @@ private:
         // We track here how much time (can also be negative) was left for the loop iteration given
         // the desired loop rate.
         m_lock.lock();
-        if (m_run_type == RunType::PUBLISHER) {
+        if (is_publisher()) {
           m_time_reserve_statistics.add_sample(std::chrono::duration<double>(reserve).count());
         } else {
           m_time_reserve_statistics.add_sample(0.0);
@@ -180,7 +190,7 @@ private:
         m_lock.unlock();
       }
       if (m_ec.rate() > 0 &&
-        m_run_type == RunType::PUBLISHER &&
+        is_publisher() &&
         // Relays should never sleep.
         m_ec.roundtrip_mode() != ExperimentConfiguration::RoundTripMode::RELAY)
       {

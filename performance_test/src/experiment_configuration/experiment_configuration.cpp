@@ -109,7 +109,8 @@ ExperimentConfiguration::ExperimentConfiguration()
   m_use_single_participant(false),
   m_is_rt_init_required(false),
   m_is_zero_copy_transfer(false),
-  m_roundtrip_mode(RoundTripMode::NONE)
+  m_roundtrip_mode(RoundTripMode::NONE),
+  m_intra_thread(false)
 {}
 
 void ExperimentConfiguration::setup(int argc, char ** argv)
@@ -255,6 +256,9 @@ void ExperimentConfiguration::setup(int argc, char ** argv)
       "The number of bytes to use for an unbounded message type. Ignored for other messages.",
       false, 0, "N", cmd);
 
+    TCLAP::SwitchArg intraThreadArg("", "intra-thread",
+      "One publisher and one subscriber in the same thread.", cmd, false);
+
     cmd.parse(argc, argv);
 
     // default to only stdout output
@@ -310,6 +314,7 @@ void ExperimentConfiguration::setup(int argc, char ** argv)
     m_wait_for_matched_timeout = waitForMatchedTimeoutArg.getValue();
     m_is_zero_copy_transfer = zeroCopyArg.getValue();
     m_unbounded_msg_size = unboundedMsgSizeArg.getValue();
+    m_intra_thread = intraThreadArg.getValue();
   } catch (TCLAP::ArgException & e) {
     std::cerr << "error: " << e.error() << " for arg " << e.argId() << std::endl;
   }
@@ -691,6 +696,12 @@ bool ExperimentConfiguration::exit_requested() const
 #else
   return false;
 #endif
+}
+
+bool ExperimentConfiguration::intra_thread() const
+{
+  check_setup();
+  return m_intra_thread;
 }
 
 }  // namespace performance_test

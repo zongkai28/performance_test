@@ -28,7 +28,8 @@ namespace performance_test
 Communicator::Communicator(SpinLock & lock)
 : m_ec(ExperimentConfiguration::get()),
   m_prev_timestamp(),
-  m_prev_sample_id(),
+  m_prev_sent_sample_id(),
+  m_prev_received_sample_id(),
   m_num_lost_samples(),
   m_received_sample_counter(),
   m_sent_sample_counter(),
@@ -56,8 +57,7 @@ std::uint64_t Communicator::next_sample_id()
   /* We never send a sample with id 0 to make sure we not just dealing with default
      constructed samples.
    */
-  m_prev_sample_id = m_prev_sample_id + 1;
-  return m_prev_sample_id;
+  return ++m_prev_sent_sample_id;
 }
 void Communicator::increment_received(const std::uint64_t & increment)
 {
@@ -70,16 +70,16 @@ void Communicator::increment_sent(const std::uint64_t & increment)
 void Communicator::update_lost_samples_counter(const std::uint64_t sample_id)
 {
   // We can lose samples, but samples always arrive in the right order and no duplicates exist.
-  if (sample_id <= m_prev_sample_id) {
+  if (sample_id <= m_prev_received_sample_id) {
     throw std::runtime_error(
             "Data consistency violated. Received sample with not strictly higher "
             "id. Received sample id " +
             std::to_string(
               sample_id) + " Prev. sample id : " +
-            std::to_string(m_prev_sample_id));
+            std::to_string(m_prev_received_sample_id));
   }
-  m_num_lost_samples += sample_id - m_prev_sample_id - 1;
-  m_prev_sample_id = sample_id;
+  m_num_lost_samples += sample_id - m_prev_received_sample_id - 1;
+  m_prev_received_sample_id = sample_id;
 }
 void Communicator::add_latency_to_statistics(const std::int64_t sample_timestamp)
 {
@@ -112,11 +112,6 @@ void Communicator::reset()
   m_received_sample_counter = 0;
   m_sent_sample_counter = 0;
   m_latency = StatisticsTracker();
-}
-
-std::uint64_t Communicator::prev_sample_id() const
-{
-  return m_prev_sample_id;
 }
 
 void Communicator::lock()
