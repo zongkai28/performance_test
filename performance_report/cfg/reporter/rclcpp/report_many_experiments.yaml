@@ -133,7 +133,7 @@ datasets:
 reports:
   time_vs_latency:
     report_title: Latency, CPU and Memory Usage over Time
-    template_name: test.html
+    template_name: ../templates/test.html
     figures:
       - name: compare_ros_transport
         title: Comparing different ROS 2 Transports
@@ -165,7 +165,7 @@ reports:
           - ros_singlethreaded_zc_array1m_100_1_1
   msg_size_vs_latency_cpu:
     report_title: Latency over Message Size
-    template_name: test.html
+    template_name: ../templates/test.html
     figures:
       - name: compare_ros_msg_size
         title: Comparing Latency over Message Size
@@ -183,7 +183,7 @@ reports:
           - ros_singlethreaded_zc_1_subs
   ros_singlethreaded_compare_num_subs:
     report_title: Latency over Number of Subscribers for Zero Copy
-    template_name: test.html
+    template_name: ../templates/test.html
     figures:
       - name: compare_ros_num_subs
         title: Comparing Latency over Number of Subscribers with Zero Copy

@@ -33,7 +33,7 @@ datasets:
 reports:
   time_vs_latency_cpu_mem:
     report_title: Latency, CPU and Memory Usage over Time
-    template_name: test.html
+    template_name: ../templates/test.html
     figures:
       - name: compare_default_ros_transport
         title: Comparing different ROS 2 Transports

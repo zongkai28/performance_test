@@ -18,30 +18,35 @@ import yaml
 
 from bokeh.embed import components
 
-from jinja2 import Environment, PackageLoader, select_autoescape
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 from .figures import generateFigure
 from .logs import getDatasets
 from .utils import create_dir, PerfArgParser
 
 
 def generateReports(report_cfg_file, output_dir):
+    cfg_dir, _ = os.path.split(report_cfg_file)
     html_figures = []
-    env = Environment(
-        loader=PackageLoader('performance_report'),
-        autoescape=select_autoescape()
-    )
     with open(report_cfg_file, "r") as f:
         reports_cfg = yaml.load(f, Loader=yaml.FullLoader)
         datasets = getDatasets(reports_cfg["datasets"], output_dir)
         try:
-            for report in reports_cfg['reports']:
-                for fig in reports_cfg['reports'][report]['figures']:
+            for report_name, report_cfg in reports_cfg['reports'].items():
+                for fig in report_cfg['figures']:
                     plot = generateFigure(fig, datasets)
                     script, div = components(plot)
                     html_figures.append((script, div))
+
                 # fill in template
-                template = env.get_template('test.html')
-                report_title = reports_cfg['reports'][report]['report_title']
+                template_dir, template_file = os.path.split(report_cfg['template_name'])
+                loader_dir = os.path.join(cfg_dir, template_dir)
+                env = Environment(
+                    loader=FileSystemLoader(loader_dir),
+                    autoescape=select_autoescape()
+                )
+                template = env.get_template(template_file)
+
+                report_title = report_cfg['report_title']
                 for html_fig in html_figures:
                     output = template.render(
                         script=str(html_fig[0]),
