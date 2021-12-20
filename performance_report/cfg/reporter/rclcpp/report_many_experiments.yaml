@@ -132,10 +132,10 @@ datasets:
         rate: 100
 reports:
   time_vs_latency:
-    report_title: Latency, CPU and Memory Usage over Time
-    template_name: ../templates/test.html
+    report_title: Latency, CPU and Memory Usage
+    template_name: ../templates/many.html
     figures:
-      - name: compare_ros_transport
+      - name: compare_transport
         title: Comparing different ROS 2 Transports
         x_axis_label: Time (seconds)
         y_axis_label: Latency (ms)
@@ -149,7 +149,7 @@ reports:
           - ros_singlethreaded_intra_array1m_100_1_1
           - ros_singlethreaded_shmem_array1m_100_1_1
           - ros_singlethreaded_zc_array1m_100_1_1
-      - name: compare_ros_transport_cpu_usage
+      - name: compare_transport_cpu_usage
         title: Comparing different ROS 2 Transports CPU Usage (%)
         x_axis_label: Time (seconds)
         y_axis_label: CPU Usage (%)
@@ -163,11 +163,7 @@ reports:
           - ros_singlethreaded_intra_array1m_100_1_1
           - ros_singlethreaded_shmem_array1m_100_1_1
           - ros_singlethreaded_zc_array1m_100_1_1
-  msg_size_vs_latency_cpu:
-    report_title: Latency over Message Size
-    template_name: ../templates/test.html
-    figures:
-      - name: compare_ros_msg_size
+      - name: compare_msg_size
         title: Comparing Latency over Message Size
         x_axis_label: Message Size
         y_axis_label: Latency (ms)
@@ -181,11 +177,7 @@ reports:
           - ros_singlethreaded_intra_1_subs
           - ros_singlethreaded_shmem_1_subs
           - ros_singlethreaded_zc_1_subs
-  ros_singlethreaded_compare_num_subs:
-    report_title: Latency over Number of Subscribers for Zero Copy
-    template_name: ../templates/test.html
-    figures:
-      - name: compare_ros_num_subs
+      - name: compare_num_subs
         title: Comparing Latency over Number of Subscribers with Zero Copy
         x_axis_label: Number of Subscribers
         y_axis_label: Latency (ms)

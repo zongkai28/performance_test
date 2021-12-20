@@ -26,7 +26,7 @@ from .utils import create_dir, PerfArgParser
 
 def generateReports(report_cfg_file, output_dir):
     cfg_dir, _ = os.path.split(report_cfg_file)
-    html_figures = []
+    html_figures = {}
     with open(report_cfg_file, "r") as f:
         reports_cfg = yaml.load(f, Loader=yaml.FullLoader)
         datasets = getDatasets(reports_cfg["datasets"], output_dir)
@@ -35,7 +35,7 @@ def generateReports(report_cfg_file, output_dir):
                 for fig in report_cfg['figures']:
                     plot = generateFigure(fig, datasets)
                     script, div = components(plot)
-                    html_figures.append((script, div))
+                    html_figures[fig['name']] = script + div
 
                 # fill in template
                 template_dir, template_file = os.path.split(report_cfg['template_name'])
@@ -48,9 +48,7 @@ def generateReports(report_cfg_file, output_dir):
 
                 report_title = report_cfg['report_title']
                 for html_fig in html_figures:
-                    output = template.render(
-                        script=str(html_fig[0]),
-                        div=str(html_fig[1]))
+                    output = template.render(html_figures)
                     
                 with open(report_title + '.html', 'w') as result:
                     result.write(output)
