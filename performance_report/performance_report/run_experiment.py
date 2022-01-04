@@ -57,14 +57,16 @@ def run_experiment(cfg: ExperimentConfig, output_dir, overwrite: bool):
     if cfg.history == HISTORY.KEEP_LAST:
         cmd += " --keep-last"
     cmd += f" --history-depth {cfg.history_depth}"
+    cmd += f" --use-rt-prio {cfg.rt_prio}"
+    cmd += f" --use-rt-cpus {cfg.rt_cpus}"
     cmd += f" --max-runtime {cfg.max_runtime}"
     cmd += f" --ignore {cfg.ignore_seconds}"
     if cfg.transport == TRANSPORT.INTRA:
         cmd += f" -p {cfg.pubs} -s {cfg.subs} -o json --json-logfile {lf}"
         os.system(cmd)
     else:
-        cmd_sub = cmd + f" -p 0 -s {cfg.subs} -o json --json-logfile {lf}"
-        cmd_pub = cmd + f" -s 0 -p {cfg.pubs} -o none"
+        cmd_sub = cmd + f" -p 0 -s {cfg.subs} --expected-num-pubs {cfg.pubs} -o json --json-logfile {lf}"
+        cmd_pub = cmd + f" -s 0 -p {cfg.pubs} --expected-num-subs {cfg.subs} -o none"
         if cfg.transport == TRANSPORT.ZERO_COPY:
             cmd_sub += " --zero-copy"
             cmd_pub += " --zero-copy"

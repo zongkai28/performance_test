@@ -12,6 +12,8 @@ experiments:
 #   durability: VOLATILE
 #   history_kind: KEEP_LAST
 #   history_depth: 16
+#   rt_prio: 0
+#   rt_cpus: 0
 #   max_runtime: 30
 #   ignore_seconds: 5
   -
