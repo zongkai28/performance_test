@@ -21,7 +21,7 @@ datasets:
   #        rate: 100
   #        reliability: RELIABLE
   #        durability: VOLATILE
-  #        history_kind: KEEP_LAST
+  #        history: KEEP_LAST
   #        history_depth: 16
   ros_singlethreaded_intra_1_subs:
     name: Default ROS 2 INTRA 1 subs

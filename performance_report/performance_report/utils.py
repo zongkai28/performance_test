@@ -116,6 +116,56 @@ class ExperimentConfig:
                members.append(attribute)
         return members
 
+    def cli_commands(self, perf_test_exe_cmd, output_dir) -> list:
+        args = self.cli_args(output_dir)
+        commands = []
+        if len(args) == 1:
+            commands.append(perf_test_exe_cmd + args[0])
+        elif len(args) == 2:
+            sub_args, pub_args = args
+            if self.transport == TRANSPORT.ZERO_COPY or self.transport == TRANSPORT.SHMEM:
+                shmem_config_file = os.path.join(output_dir, "shmem.yml")
+                commands.append(f'export APEX_MIDDLEWARE_SETTINGS="{shmem_config_file}"')
+                commands.append(f'export CYCLONEDDS_URI="{shmem_config_file}"')
+                commands.append("echo -e 'domain:\n  shared_memory:\n    enable: true' > ${APEX_MIDDLEWARE_SETTINGS}")
+            commands.append(sub_args + ' &')
+            commands.append('sleep 1')
+            commands.append(pub_args)
+            if self.transport == TRANSPORT.ZERO_COPY or self.transport == TRANSPORT.SHMEM:
+                commands.append('unset APEX_MIDDLEWARE_SETTINGS')
+                commands.append('unset CYCLONEDDS_URI')
+        else:
+            raise RuntimeError('Unreachable code')
+        return commands
+
+    def cli_args(self, output_dir) -> list:
+        args = ""
+        args += f" -c {self.com_mean}"
+        args += f" -m {self.msg}"
+        args += f" -r {self.rate}"
+        if self.reliability == RELIABILITY.RELIABLE:
+            args += " --reliable"
+        if self.durability == DURABILITY.TRANSIENT_LOCAL:
+            args += " --transient"
+        if self.history == HISTORY.KEEP_LAST:
+            args += " --keep-last"
+        args += f" --history-depth {self.history_depth}"
+        args += f" --use-rt-prio {self.rt_prio}"
+        args += f" --use-rt-cpus {self.rt_cpus}"
+        args += f" --max-runtime {self.max_runtime}"
+        args += f" --ignore {self.ignore_seconds}"
+        lf = os.path.join(output_dir, self.log_file_name())
+        if self.transport == TRANSPORT.INTRA:
+            args += f" -p {self.pubs} -s {self.subs} -o json --json-logfile {lf}"
+            return [args]
+        else:
+            args_sub = args + f" -p 0 -s {self.subs} --expected-num-pubs {self.pubs} -o json --json-logfile {lf}"
+            args_pub = args + f" -s 0 -p {self.pubs} --expected-num-subs {self.subs} -o none"
+            if self.transport == TRANSPORT.ZERO_COPY:
+                args_sub += " --zero-copy"
+                args_pub += " --zero-copy"
+            return [args_sub, args_pub]
+
 
 class LineConfig:
     def __init__(
@@ -196,6 +246,11 @@ class PerfArgParser(argparse.ArgumentParser):
             default=[],
             nargs="+",
             help="The yaml file(s) containing experiments to run",
+        )
+        self.add_argument(
+            "--perf-test-exe",
+            default='ros2 run performance_test perf_test',
+            help="The command to run the perf_test executable",
         )
         self.add_argument(
             "--force",

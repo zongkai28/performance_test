@@ -21,7 +21,7 @@ datasets:
   #        rate: 100
   #        reliability: RELIABLE
   #        durability: VOLATILE
-  #        history_kind: KEEP_LAST
+  #        history: KEEP_LAST
   #        history_depth: 16
   apex_os_intra_1_subs:
     name: Apex.OS + Apex.Middleware INTRA 1 subs

@@ -60,10 +60,6 @@ def getExperiments(yaml_experiments: list) -> 'list[ExperimentConfig]':
     return experiments
 
 
-def getExperimentLogPath(dir, cfg):
-    return os.path.join(dir, cfg.log_file_name())
-
-
 def coerce_to_list(val_or_list: object) -> list:
     if isinstance(val_or_list, list):
         return val_or_list

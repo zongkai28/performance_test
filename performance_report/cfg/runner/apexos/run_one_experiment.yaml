@@ -10,7 +10,7 @@ experiments:
 #   rate: 100
 #   reliability: RELIABLE
 #   durability: VOLATILE
-#   history_kind: KEEP_LAST
+#   history: KEEP_LAST
 #   history_depth: 16
 #   rt_prio: 0
 #   rt_cpus: 0

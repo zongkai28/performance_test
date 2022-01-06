@@ -17,9 +17,8 @@ import os
 import time
 import yaml
 
-from .logs import getExperiments, getExperimentLogPath
+from .logs import getExperiments
 from .utils import cliColors, create_dir, generate_shmem_file, ExperimentConfig, PerfArgParser
-from .qos import DURABILITY, HISTORY, RELIABILITY
 from .transport import TRANSPORT
 
 
@@ -38,46 +37,27 @@ def teardown_from_shmem(cfg: ExperimentConfig):
         os.unsetenv("CYCLONEDDS_URI")
 
 
-def run_experiment(cfg: ExperimentConfig, output_dir, overwrite: bool):
-    lf = getExperimentLogPath(output_dir, cfg)
+def run_experiment(cfg: ExperimentConfig, perf_test_exe_cmd, output_dir, overwrite: bool):
+    lf = os.path.join(output_dir, cfg.log_file_name())
     if os.path.exists(lf) and not overwrite:
         print(cliColors.WARN + f"Skipping experiment {cfg.log_file_name()} as results already exist in " + output_dir + cliColors.ENDCOLOR)
         return
     else:
         print(cliColors.GREEN + f"Running experiment {cfg.log_file_name()}" + cliColors.ENDCOLOR)
 
-    cmd = "ros2 run performance_test perf_test"
-    cmd += f" -c {cfg.com_mean}"
-    cmd += f" -m {cfg.msg}"
-    cmd += f" -r {cfg.rate}"
-    if cfg.reliability == RELIABILITY.RELIABLE:
-        cmd += " --reliable"
-    if cfg.durability == DURABILITY.TRANSIENT_LOCAL:
-        cmd += " --transient"
-    if cfg.history == HISTORY.KEEP_LAST:
-        cmd += " --keep-last"
-    cmd += f" --history-depth {cfg.history_depth}"
-    cmd += f" --use-rt-prio {cfg.rt_prio}"
-    cmd += f" --use-rt-cpus {cfg.rt_cpus}"
-    cmd += f" --max-runtime {cfg.max_runtime}"
-    cmd += f" --ignore {cfg.ignore_seconds}"
     if cfg.transport == TRANSPORT.INTRA:
-        cmd += f" -p {cfg.pubs} -s {cfg.subs} -o json --json-logfile {lf}"
-        os.system(cmd)
+        cli_args = cfg.cli_args(output_dir)[0]
+        os.system(perf_test_exe_cmd + cli_args)
     else:
-        cmd_sub = cmd + f" -p 0 -s {cfg.subs} --expected-num-pubs {cfg.pubs} -o json --json-logfile {lf}"
-        cmd_pub = cmd + f" -s 0 -p {cfg.pubs} --expected-num-subs {cfg.subs} -o none"
-        if cfg.transport == TRANSPORT.ZERO_COPY:
-            cmd_sub += " --zero-copy"
-            cmd_pub += " --zero-copy"
+        cli_args_sub, cli_args_pub = cfg.cli_args(output_dir)
         prepare_for_shmem(cfg, output_dir)
-        os.system(cmd_sub + " &")
+        os.system(perf_test_exe_cmd + cli_args_sub + ' &')
         time.sleep(1)
-        os.system(cmd_pub)
+        os.system(perf_test_exe_cmd + cli_args_pub)
         teardown_from_shmem(cfg)
 
 
-def run_experiments(files: "list[str]", output_dir, overwrite: bool):
+def run_experiments(files: "list[str]", perf_test_exe_cmd, output_dir, overwrite: bool):
     # make sure output dir exists
     create_dir(output_dir)
     # loop over given run files and run experiments
@@ -88,7 +68,7 @@ def run_experiments(files: "list[str]", output_dir, overwrite: bool):
         run_configs = getExperiments(run_cfg["experiments"])
 
         for run_config in run_configs:
-            run_experiment(run_config, output_dir, overwrite)
+            run_experiment(run_config, perf_test_exe_cmd, output_dir, overwrite)
 
 
 def main():
@@ -99,10 +79,11 @@ def main():
     log_dir = getattr(args, "log_dir")
     test_name = getattr(args, "test_name")
     run_files = getattr(args, "configs")
+    perf_test_exe_cmd = getattr(args, "perf_test_exe")
     overwrite = bool(getattr(args, "force"))
 
     log_dir = os.path.join(log_dir, test_name)
-    run_experiments(run_files, log_dir, overwrite)
+    run_experiments(run_files, perf_test_exe_cmd, log_dir, overwrite)
 
 
 # if this file is called directly

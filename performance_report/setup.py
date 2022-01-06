@@ -22,6 +22,7 @@ setup(
     tests_require=[],
     entry_points={
         'console_scripts': [
+            'commander = performance_report.generate_experiment_commands:main',
             'runner = performance_report.run_experiment:main',
             'plotter = performance_report.generate_plots:main',
             'reporter = performance_report.generate_report:main',
