@@ -203,16 +203,20 @@ class PerfArgParser(argparse.ArgumentParser):
             action="store_true",
             help="Force existing results to be overwritten (by default, they are skipped).",
         )
+
         if len(sys.argv) == 1:
             print('[ERROR][ %s ] No arguments given\n' % self.prog)
             self.print_help()
             sys.exit(2)
+        elif (sys.argv[1] == '-h' or sys.argv[1] == '--help'):
+            self.print_help()
+            sys.exit(0)
 
     def error(self, msg):
         print('[ERROR][ %s ] %s\n' % (self.prog, msg))
         self.print_help()
         sys.exit(2)
-    
+
     def exit(self, msg):
         print('EXIT')
 
