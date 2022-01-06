@@ -7,6 +7,15 @@ This package serves two purposes:
 
 ## Quick start
 
+Install the required dependencies
+
+```
+# install bokeh and selenium
+python3 -m pip install bokeh selenium
+# install firefox-geckodriver
+sudo apt install firefox-geckodriver
+```
+
 ```
 # Build performance_test and performance_report
 colcon build
