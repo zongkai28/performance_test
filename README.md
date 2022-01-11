@@ -88,6 +88,7 @@ git clone https://gitlab.com/ApexAI/performance_test.git
 cd ..
 # At this stage, you need to choose which middleware you want to use
 # The list of available flags is described in the middleware plugins section
+# Square brackets denote optional arguments, like in the Python documentation.
 colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release <cmake_enable_plugin_flag>
 source install/setup.bash
 ```
@@ -184,6 +185,29 @@ implemented:
   |-------|---------------------|--------------------|
   | INTRA | UDP                 | UDP                |
 
+
+#### Eclipse Cyclone DDS C++ binding
+
+- [Eclipse Cyclone DDS C++ bindings 0.8.1](https://github.com/eclipse-cyclonedds/cyclonedds-cxx/tree/0.8.1)
+- CMake build flag: `-DPERFORMANCE_TEST_CYCLONEDDS_CXX_ENABLED=ON`
+- Communication plugin: `-c CycloneDDS-CXX`
+- Zero copy transport (`--zero-copy`): yes
+  - Cyclone DDS zero copy requires the
+    [runtime switch](https://github.com/eclipse-cyclonedds/cyclonedds/blob/iceoryx/docs/manual/shared_memory.rst)
+    to be enabled.
+  - When the runtime switch is enabled,
+    [RouDi](https://github.com/eclipse-iceoryx/iceoryx/blob/master/doc/website/getting-started/overview.md#roudi)
+    must be running.
+  - If the runtime switch is enabled, but `--zero-copy` is not added, then the plugin will not use
+    the loaned sample API, but iceoryx will still transport the samples.
+  - See [Dockerfile.mashup](dockerfiles/Dockerfile.mashup)
+- Docker file: [Dockerfile.CycloneDDS-CXX](dockerfiles/Dockerfile.CycloneDDS-CXX)
+- Default transports:
+  | INTRA | IPC on same machine | Distributed system |
+  |-------|---------------------|--------------------|
+  | INTRA | UDP                 | UDP                |
+
+
 #### Eclipse iceoryx
 
 - [iceoryx 1.0](https://github.com/eclipse-iceoryx/iceoryx/tree/release_1.0)
@@ -270,7 +294,7 @@ through the ROS2 `rclcpp::publisher` and `rclcpp::subscriber` API.
 - Zero copy transport (`--zero-copy`): yes
 - Docker file: [Dockerfile.rclcpp](dockerfiles/Dockerfile.rclcpp)
 - These plugins will use the ROS 2 RMW implementation that is configured on your system.
-  - ROS 2 Galactic is pre-configured to use rmw_cyclonedds_cpp.
+  - ROS 2 Foxy is pre-configured to use rmw_fastrtps_cpp.
     - Follow [these instructions](https://docs.ros.org/en/foxy/Guides/Working-with-multiple-RMW-implementations.html)
     to use a different RMW implementation with ROS 2.
     - You can find a list of several other middleware options
