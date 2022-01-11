@@ -81,7 +81,6 @@ std::ostream & operator<<(std::ostream & stream, const ExperimentConfiguration &
            "\nNumber of publishers: " << e.number_of_publishers() <<
            "\nNumber of subscribers: " << e.number_of_subscribers() <<
            "\nMemory check enabled: " << e.check_memory() <<
-           "\nUse single participant: " << e.use_single_participant() <<
            "\nWith security: " << e.is_with_security() <<
            "\nShared memory transfer: " << e.is_shared_memory_transfer() <<
            "\nZero copy transfer: " << e.is_zero_copy_transfer() <<
@@ -106,7 +105,6 @@ ExperimentConfiguration::ExperimentConfiguration()
   m_expected_num_subs(),
   m_wait_for_matched_timeout(),
   m_check_memory(false),
-  m_use_single_participant(false),
   m_is_rt_init_required(false),
   m_is_zero_copy_transfer(false),
   m_roundtrip_mode(RoundTripMode::NONE)
@@ -161,6 +159,9 @@ void ExperimentConfiguration::setup(int argc, char ** argv)
 #endif
 #ifdef PERFORMANCE_TEST_CYCLONEDDS_ENABLED
     allowedCommunications.push_back("CycloneDDS");
+#endif
+#ifdef PERFORMANCE_TEST_CYCLONEDDS_CXX_ENABLED
+    allowedCommunications.push_back("CycloneDDS-CXX");
 #endif
 #ifdef PERFORMANCE_TEST_ICEORYX_ENABLED
     allowedCommunications.push_back("iceoryx");
@@ -222,10 +223,6 @@ void ExperimentConfiguration::setup(int argc, char ** argv)
       "Set RT CPU affinity mask. "
       "Only certain platforms (i.e. Drive PX) have the right configuration to support this.",
       false, 0, "N", cmd);
-
-    TCLAP::SwitchArg useSingleParticipantArg("", "use-single-participant",
-      "**DEPRECATED** Uses only one participant per process. By default every thread has its own.",
-      cmd, false);
 
     TCLAP::SwitchArg withSecurityArg("", "with-security",
       "Make nodes with deterministic names for use with security.", cmd, false);
@@ -301,7 +298,6 @@ void ExperimentConfiguration::setup(int argc, char ** argv)
     m_check_memory = checkMemoryArg.getValue();
     prio = useRtPrioArg.getValue();
     cpus = useRtCpusArg.getValue();
-    m_use_single_participant = useSingleParticipantArg.getValue();
     m_with_security = withSecurityArg.getValue();
     roundtrip_mode_str = relayModeArg.getValue();
     m_rows_to_ignore = ignoreArg.getValue();
@@ -356,6 +352,11 @@ void ExperimentConfiguration::setup(int argc, char ** argv)
       m_com_mean = CommunicationMean::CYCLONEDDS;
     }
 #endif
+#ifdef PERFORMANCE_TEST_CYCLONEDDS_CXX_ENABLED
+    if (comm_str == "CycloneDDS-CXX") {
+      m_com_mean = CommunicationMean::CYCLONEDDS_CXX;
+    }
+#endif
 #ifdef PERFORMANCE_TEST_ICEORYX_ENABLED
     if (comm_str == "iceoryx") {
       m_com_mean = CommunicationMean::ICEORYX;
@@ -405,11 +406,6 @@ void ExperimentConfiguration::setup(int argc, char ** argv)
 #else
       throw std::invalid_argument("Built with RT optimizations disabled");
 #endif
-    }
-    if (m_use_single_participant) {
-      if (use_ros2_layers()) {
-        throw std::invalid_argument("ROS2 does not support single participant mode!");
-      }
     }
 
     if (m_with_security) {
@@ -558,12 +554,6 @@ bool ExperimentConfiguration::check_memory() const
 {
   check_setup();
   return m_check_memory;
-}
-
-bool ExperimentConfiguration::use_single_participant() const
-{
-  check_setup();
-  return m_use_single_participant;
 }
 
 bool ExperimentConfiguration::is_rt_init_required() const
