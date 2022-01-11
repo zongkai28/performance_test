@@ -78,6 +78,61 @@ build_cyclonedds:
       - opt-cyclonedds.tar.gz
       - opt.tar.gz
 
+build_cyclonedds_cxx:
+  stage: build
+  image: osrf/ros:eloquent-desktop
+  script:
+    - source /opt/ros/eloquent/setup.bash
+    - apt-get update
+    - apt-get install -y bison default-jdk libacl1-dev
+
+    - git clone https://github.com/eclipse-cyclonedds/cyclonedds.git -b 0.8.1 --depth 1
+    - cd cyclonedds
+    - mkdir -p build
+    - cd build
+    - cmake -DCMAKE_INSTALL_PREFIX=/opt/cyclonedds ..
+    - cmake --build .
+    - cmake --build . --target install
+
+    - git clone https://github.com/eclipse-cyclonedds/cyclonedds-cxx.git -b 0.8.1 --depth 1
+    - cd cyclonedds-cxx
+    - mkdir -p build
+    - cd build
+    - '
+      cmake -DCMAKE_INSTALL_PREFIX=/opt/cyclonedds-cxx
+            -DCMAKE_PREFIX_PATH=/opt/cyclonedds
+            ..
+      '
+    - cmake --build .
+    - cmake --build . --target install
+
+    - cd $CI_PROJECT_DIR
+    - '
+      colcon build
+          --install-base /opt/performance_test
+          --merge-install
+          --cmake-args
+            -DCMAKE_BUILD_TYPE=Release
+            -DPERFORMANCE_TEST_CYCLONEDDS_CXX_ENABLED=ON
+            -DPERFORMANCE_TEST_RCLCPP_ENABLED=OFF
+          --base-path performance_test
+      '
+
+    - cp LICENSE /opt/performance_test
+    - tar cfz opt-cyclonedds.tar.gz /opt/cyclonedds
+    - tar cfz opt-cyclonedds-cxx.tar.gz /opt/cyclonedds-cxx
+    - tar cfz opt.tar.gz /opt/performance_test
+  artifacts:
+    expire_in: 1 day
+    when: always
+    paths:
+      - log
+      - build
+      - opt-iceoryx.tar.gz
+      - opt-cyclonedds.tar.gz
+      - opt-cyclonedds-cxx.tar.gz
+      - opt.tar.gz
+
 build_opendds:
   stage: build
   image: osrf/ros:eloquent-desktop
@@ -225,6 +280,20 @@ smoke_test_cyclonedds:
     SMOKE_TEST_BEFORE_SCRIPT: '
         tar xzf opt-cyclonedds.tar.gz -C /;
         LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/cyclonedds/lib";
+    '
+
+smoke_test_cyclonedds_cxx:
+  image: osrf/ros:eloquent-desktop
+  extends:
+    - .smoke_test
+  needs:
+    - build_cyclonedds_cxx
+  variables:
+    COMMUNICATION_MEAN: CycloneDDS-CXX
+    SMOKE_TEST_BEFORE_SCRIPT: '
+        tar xzf opt-cyclonedds.tar.gz -C /;
+        tar xzf opt-cyclonedds-cxx.tar.gz -C /;
+        LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/cyclonedds/lib:/opt/cyclonedds-cxx/lib";
     '
 
 smoke_test_opendds:

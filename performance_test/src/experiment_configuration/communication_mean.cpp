@@ -46,6 +46,11 @@ std::string to_string(const CommunicationMean cm)
     return "CYCLONEDDS";
   }
 #endif
+#ifdef PERFORMANCE_TEST_CYCLONEDDS_CXX_ENABLED
+  if (cm == CommunicationMean::CYCLONEDDS_CXX) {
+    return "CYCLONEDDS_CXX";
+  }
+#endif
 #ifdef PERFORMANCE_TEST_OPENDDS_ENABLED
   if (cm == CommunicationMean::OPENDDS) {
     return "OpenDDS";

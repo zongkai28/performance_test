@@ -140,6 +140,16 @@ if(PERFORMANCE_TEST_CYCLONEDDS_ENABLED)
   list(APPEND PLUGIN_LIBRARIES CycloneDDS::ddsc)
 endif()
 
+
+# cyclonedds-cxx
+option(PERFORMANCE_TEST_CYCLONEDDS_CXX_ENABLED "Enable C++ binding for Cyclone DDS" OFF)
+if(PERFORMANCE_TEST_CYCLONEDDS_CXX_ENABLED)
+  find_package(CycloneDDS-CXX REQUIRED)
+  add_definitions(-DPERFORMANCE_TEST_CYCLONEDDS_CXX_ENABLED)
+  list(APPEND PLUGIN_LIBRARIES cyclonedds_cxx_idl CycloneDDS-CXX::ddscxx)
+endif()
+
+
 # OpenDDS
 option(PERFORMANCE_TEST_OPENDDS_ENABLED "Require Open DDS to be available, fail otherwise" OFF)
 if(PERFORMANCE_TEST_OPENDDS_ENABLED)
@@ -216,6 +226,10 @@ endif()
 
 if(PERFORMANCE_TEST_CYCLONEDDS_ENABLED)
   list(APPEND sources src/communication_abstractions/cyclonedds_communicator.hpp)
+endif()
+
+if(PERFORMANCE_TEST_CYCLONEDDS_CXX_ENABLED)
+  list(APPEND sources src/communication_abstractions/cyclonedds_cxx_communicator.hpp)
 endif()
 
 if(PERFORMANCE_TEST_OPENDDS_ENABLED)
