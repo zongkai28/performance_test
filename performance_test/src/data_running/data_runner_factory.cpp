@@ -36,13 +36,18 @@
 #include "../communication_abstractions/connext_dds_communicator.hpp"
 #endif
 
+#ifdef PERFORMANCE_TEST_CYCLONEDDS_ENABLED
+  #include "../communication_abstractions/cyclonedds_communicator.hpp"
+#endif
+
+#ifdef PERFORMANCE_TEST_CYCLONEDDS_CXX_ENABLED
+  #include "../communication_abstractions/cyclonedds_cxx_communicator.hpp"
+#endif
+
 #ifdef PERFORMANCE_TEST_OPENDDS_ENABLED
   #include "../communication_abstractions/opendds_communicator.hpp"
 #endif
 
-#ifdef PERFORMANCE_TEST_CYCLONEDDS_ENABLED
-  #include "../communication_abstractions/cyclonedds_communicator.hpp"
-#endif
 #include "data_runner.hpp"
 
 namespace performance_test
@@ -88,6 +93,11 @@ std::shared_ptr<DataRunnerBase> DataRunnerFactory::get(
 #ifdef PERFORMANCE_TEST_CYCLONEDDS_ENABLED
         if (com_mean == CommunicationMean::CYCLONEDDS) {
           ptr = std::make_shared<DataRunner<CycloneDDSCommunicator<T>>>(run_type);
+        }
+#endif
+#ifdef PERFORMANCE_TEST_CYCLONEDDS_CXX_ENABLED
+        if (com_mean == CommunicationMean::CYCLONEDDS_CXX) {
+          ptr = std::make_shared<DataRunner<CycloneDDSCXXCommunicator<T>>>(run_type);
         }
 #endif
 #ifdef PERFORMANCE_TEST_OPENDDS_ENABLED
