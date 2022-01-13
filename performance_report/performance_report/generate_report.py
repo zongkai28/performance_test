@@ -47,8 +47,7 @@ def generateReports(report_cfg_file, output_dir):
                 template = env.get_template(template_file)
 
                 report_title = report_cfg['report_title']
-                for html_fig in html_figures:
-                    output = template.render(html_figures)
+                output = template.render(html_figures)
                     
                 with open(report_title + '.html', 'w') as result:
                     result.write(output)

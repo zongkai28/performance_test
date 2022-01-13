@@ -23,6 +23,7 @@ datasets:
   #        durability: VOLATILE
   #        history: KEEP_LAST
   #        history_depth: 16
+  #        wildcard: false  <-- set to true wildcard all experiment options except those set
   apex_os_intra_1_subs:
     name: Apex.OS + Apex.Middleware INTRA 1 subs
     theme:

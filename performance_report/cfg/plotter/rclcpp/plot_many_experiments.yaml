@@ -23,6 +23,7 @@ datasets:
   #        durability: VOLATILE
   #        history: KEEP_LAST
   #        history_depth: 16
+  #        wildcard: false  <-- set to true wildcard all experiment options except those set
   ros_singlethreaded_intra_1_subs:
     name: Default ROS 2 INTRA 1 subs
     theme:

@@ -38,6 +38,7 @@ class ExperimentConfig:
         rt_cpus: int = 0,
         max_runtime: int = 30,
         ignore_seconds: int = 5,
+        wildcard: bool = False,
     ) -> None:
         self.com_mean = str(com_mean)
         self.transport = TRANSPORT.coerce(transport)
@@ -53,6 +54,7 @@ class ExperimentConfig:
         self.rt_cpus = rt_cpus
         self.max_runtime = max_runtime
         self.ignore_seconds = ignore_seconds
+        self.wildcard = wildcard
 
     def __eq__(self, o: object) -> bool:
         same = True
@@ -70,6 +72,7 @@ class ExperimentConfig:
         same = same and self.rt_cpus == o.rt_cpus
         same = same and self.max_runtime == o.max_runtime
         same = same and self.ignore_seconds == o.ignore_seconds
+        same = same and self.wildcard == o.wildcard
         return same
 
     def log_file_name(self) -> str:
@@ -90,6 +93,23 @@ class ExperimentConfig:
         str_params = map(str, params)
         return "_".join(str_params) + ".json"
     
+    
+    def from_log_file_name(self, filename: str):
+        str_params = filename.split('.')[0].split('_')
+        self.com_mean = str_params[0]
+        self.transport = str_params[1]
+        self.msg = str_params[2]
+        self.pubs = str_params[3]
+        self.subs = str_params[4]
+        self.rate = str_params[5]
+        self.reliability = str_params[6]
+        self.durability = str_params[7]
+        self.history = str_params[8]
+        self.history_depth = str_params[9]
+        self.rt_prio = str_params[10]
+        self.rt_cpus = str_params[11]
+
+
     def as_dataframe(self) -> pd.DataFrame:
         return pd.DataFrame({
             'com_mean': self.com_mean,
@@ -106,6 +126,7 @@ class ExperimentConfig:
             'rt_cpus': self.rt_cpus,
             'max_runtime': self.max_runtime,
             'ignore_seconds': self.ignore_seconds,
+            'wildcard': self.wildcard,
         }, index=[0])
     
     def get_members(self) -> list:
@@ -154,6 +175,7 @@ class ExperimentConfig:
         args += f" --use-rt-cpus {self.rt_cpus}"
         args += f" --max-runtime {self.max_runtime}"
         args += f" --ignore {self.ignore_seconds}"
+        args += f" --wildcard {self.wildcard}"
         lf = os.path.join(output_dir, self.log_file_name())
         if self.transport == TRANSPORT.INTRA:
             args += f" -p {self.pubs} -s {self.subs} -o json --json-logfile {lf}"

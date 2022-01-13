@@ -24,26 +24,24 @@ datasets:
   #        history: KEEP_LAST
   #        history_depth: 16
   #        wildcard: false  <-- set to true wildcard all experiment options except those set
-  apex_os_intra_1_subs:
-    name: Apex.OS + Apex.Middleware INTRA 1 subs
+  apex_os_array16k:
+    name: Apex.OS + Apex.Middleware Array16k
     theme:
       color: '#652342'
     experiments:
-      - msg: Array16k
-reports:
-  time_vs_latency_cpu_mem:
-    report_title: Latency, CPU and Memory Usage over Time
-    template_name: ../templates/single.html
-    figures:
-      - name: figure_single
-        title: Comparing different Apex.OS Transports
-        x_axis_label: Time (seconds)
-        y_axis_label: Latency (ms)
-        x_range: T_experiment
-        y_range: latency_mean
-        size:
-          width: 1000
-          height: 600
-        # dataset names must be listed above
-        datasets:
-          - apex_os_intra_1_subs
+      - com_mean: rclcpp-single-threaded-executor
+        msg: Array16k
+        wildcard: true
+plots:
+  - name: compare_apexos_transport
+    title: Comparing different Apex.OS Transports with constant message size
+    x_axis_label: Time (seconds)
+    y_axis_label: Latency (ms)
+    x_range: T_experiment
+    y_range: latency_mean
+    size:
+      width: 1000
+      height: 600
+    # dataset names must be listed above
+    datasets:
+      - apex_os_array16k

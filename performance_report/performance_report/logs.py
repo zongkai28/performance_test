@@ -39,7 +39,7 @@ def parseLog(log_dir: str, experiment: ExperimentConfig):
                 dataframe['cpu_usage_percent'] = dataframe['cpu_info_cpu_usage'] * 100
                 dataframe['ru_maxrss'] = dataframe['sys_tracker_ru_maxrss']
                 dataframe['T_experiment'] = dataframe['experiment_start'] / 1000000000
-                # get experiement settings as dataframe
+                # get experiment settings as dataframe
                 exp_df = experiment.as_dataframe()
                 exp_df = exp_df.loc[exp_df.index.repeat(len(dataframe.index))].reset_index()
                 dataframe = pd.concat([exp_df, dataframe], axis=1)
@@ -48,15 +48,38 @@ def parseLog(log_dir: str, experiment: ExperimentConfig):
     return header, dataframe
 
 
-def getExperiments(yaml_experiments: list) -> 'list[ExperimentConfig]':
+def getExperiments(yaml_experiments: list, available_experiments: list) -> 'list[ExperimentConfig]':
     experiments = []
     for experiment in yaml_experiments:
-        config_matrix = coerce_dict_vals_to_lists(experiment)
+        config_matrix = coerce_dict_vals_to_lists(experiment)  
         config_combos = config_cartesian_product(config_matrix)
+        for config in config_combos:
+            if(config['wildcard']):
+                for available_config in available_experiments:
+                    use_experiment = False
+                    available_config_df = available_config.as_dataframe()
+                    for member in available_config.get_members():
+                        if member in config and member != 'wildcard':
+                            if(config[member] == available_config_df[member].values[0]):
+                                # set wildcard to True for later use
+                                available_config.wildcard = True
+                                experiments.append(available_config)
         experiment_configs = [ExperimentConfig(**args) for args in config_combos]
         for config in experiment_configs:
             if config not in experiments:
                 experiments.append(config)
+    return experiments
+
+
+def getAvailableExperiments(log_dir: str) -> 'list[ExperimentConfig]':
+    experiments = []
+    # loop over each log file
+    for fname in os.listdir(log_dir):
+        # check to make sure it is a json log file
+        if '.json' in fname:
+            experiment = ExperimentConfig()
+            experiment.from_log_file_name(fname)
+            experiments.append(experiment)
     return experiments
 
 
@@ -81,10 +104,11 @@ def config_cartesian_product(d: dict) -> list:
     return accum
 
 
-def getDatasets(yaml_datasets: dict, log_dir) -> dict:
+def getDatasets(yaml_datasets: dict, log_dir: str) -> dict:
     datasets = {}
+    available_experiments = getAvailableExperiments(log_dir)
     for dataset_id, dataset_details in yaml_datasets.items():
-        experiments = getExperiments(dataset_details['experiments'])
+        experiments = getExperiments(dataset_details['experiments'], available_experiments)
         exp_dfs = []
         dataframes = []
         headers = []

@@ -23,6 +23,7 @@ datasets:
   #        durability: VOLATILE
   #        history: KEEP_LAST
   #        history_depth: 16
+  #        wildcard: false  <-- set to true wildcard all experiment options except those set
   apex_os_intra_1_subs:
     name: Apex.OS + Apex.Middleware INTRA 1 subs
     theme:
@@ -31,7 +32,7 @@ datasets:
       - msg: Array16k
 plots:
   - name: compare_apexos_transport
-    title: Comparing different Apex.OS Transports
+    title: Plot one Apex.OS Transport for one message size
     x_axis_label: Time (seconds)
     y_axis_label: Latency (ms)
     x_range: T_experiment

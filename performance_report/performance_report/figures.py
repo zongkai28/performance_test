@@ -62,7 +62,7 @@ def generateFigure(figConfig, datasets: "list[DatasetConfig]"):
         dataset = datasets[dataset_name]
         df = dataset.dataframe
         df_summary = df.describe().reset_index()
-        
+        is_wildcard = False
         # filter dataframe based on specified ranges
         if(len(dataset.experiments) > 1):
             # if multiple experiments in dataset
@@ -72,54 +72,29 @@ def generateFigure(figConfig, datasets: "list[DatasetConfig]"):
                 exp_cols = list(exp_df.columns.values)
                 matching_rows = dataset.dataframe[exp_cols].stack().isin(exp_df.stack().values).unstack()
                 result_df = dataset.dataframe[matching_rows.all(axis='columns')]
-                # default to average of specified range
-                summary_df = result_df.groupby(experiment.get_members()).mean().reset_index()
-                filtered_results.append(summary_df)
-            df = pd.concat(filtered_results, ignore_index=True)
-        line_name = dataset.name
-        scatter_name = line_name + ' ' + dataset.theme.marker.shape
-        if is_categorical:
-            fig.x_range.factors = list(df[figConfig['x_range']])
-            source = ColumnDataSource(df)
-            fig.scatter(
-                name=scatter_name,
-                x=figConfig['x_range'],
-                y=figConfig['y_range'],
-                source=source,
-                marker=dataset.theme.marker.shape,
-                size=dataset.theme.marker.size,
-                fill_color=dataset.theme.color
-            )
-            fig.line(
-                name=line_name,
-                x=figConfig['x_range'],
-                y=figConfig['y_range'],
-                source=source,
-                line_color=dataset.theme.color,
-                line_width=dataset.theme.line.width,
-                line_alpha=dataset.theme.line.alpha,
-                legend_label=line_name,
-            )
-        else:
-            fig.scatter(
-                name=scatter_name,
-                x=figConfig['x_range'],
-                y=figConfig['y_range'],
-                source=df,
-                marker=dataset.theme.marker.shape,
-                size=dataset.theme.marker.size,
-                fill_color=dataset.theme.color
-            )
-            fig.line(
-                name=line_name,
-                x=figConfig['x_range'],
-                y=figConfig['y_range'],
-                source=df,
-                line_color=dataset.theme.color,
-                line_width=dataset.theme.line.width,
-                line_alpha=dataset.theme.line.alpha,
-                legend_label=line_name,
-            )
+                if(exp_df['wildcard'].values[0]):
+                    fig = add_line_to_figure(
+                        experiment.log_file_name().split('.')[0],
+                        fig,
+                        figConfig,
+                        is_categorical,
+                        dataset,
+                        result_df)
+                    is_wildcard = True
+                else:
+                    # default to average of specified range
+                    summary_df = result_df.groupby(experiment.get_members()).mean().reset_index()
+                    filtered_results.append(summary_df)
+            if not is_wildcard:
+                df = pd.concat(filtered_results, ignore_index=True)
+        if not is_wildcard:
+            fig = add_line_to_figure(
+                dataset.name,
+                fig,
+                figConfig,
+                is_categorical,
+                dataset,
+                df)
         # add hover tool
         hover = HoverTool()
         hover.tooltips = [
@@ -127,6 +102,54 @@ def generateFigure(figConfig, datasets: "list[DatasetConfig]"):
         ]
         fig.add_tools(hover)
     return fig
+
+
+def add_line_to_figure(line_name, fig, figConfig, is_categorical, dataset, df):
+    scatter_name = line_name + ' ' + dataset.theme.marker.shape
+    if is_categorical:
+        fig.x_range.factors = list(df[figConfig['x_range']])
+        source = ColumnDataSource(df)
+        fig.scatter(
+            name=scatter_name,
+            x=figConfig['x_range'],
+            y=figConfig['y_range'],
+            source=source,
+            marker=dataset.theme.marker.shape,
+            size=dataset.theme.marker.size,
+            fill_color=dataset.theme.color
+        )
+        fig.line(
+            name=line_name,
+            x=figConfig['x_range'],
+            y=figConfig['y_range'],
+            source=source,
+            line_color=dataset.theme.color,
+            line_width=dataset.theme.line.width,
+            line_alpha=dataset.theme.line.alpha,
+            legend_label=line_name,
+        )
+    else:
+        fig.scatter(
+            name=scatter_name,
+            x=figConfig['x_range'],
+            y=figConfig['y_range'],
+            source=df,
+            marker=dataset.theme.marker.shape,
+            size=dataset.theme.marker.size,
+            fill_color=dataset.theme.color
+        )
+        fig.line(
+            name=line_name,
+            x=figConfig['x_range'],
+            y=figConfig['y_range'],
+            source=df,
+            line_color=dataset.theme.color,
+            line_width=dataset.theme.line.width,
+            line_alpha=dataset.theme.line.alpha,
+            legend_label=line_name,
+        )
+    return fig
+
 
 def msg_size_vs_latency_cpu(configs: "list[DatasetConfig]"):
     results = []
