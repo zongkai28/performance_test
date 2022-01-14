@@ -31,7 +31,10 @@ class DURABILITY(str, Enum):
         if isinstance(val, int):
             return DURABILITY(val)
         if isinstance(val, str):
-            return DURABILITY[val]
+            if val == "V":
+                return DURABILITY.VOLATILE
+            if val == "T":
+                return DURABILITY.TRANSIENT_LOCAL
         raise TypeError
 
 
@@ -51,7 +54,10 @@ class HISTORY(str, Enum):
         if isinstance(val, int):
             return HISTORY(val)
         if isinstance(val, str):
-            return HISTORY[val]
+            if val == "A":
+                return HISTORY.KEEP_ALL
+            if val == "L":
+                return HISTORY.KEEP_LAST
         raise TypeError
 
 
@@ -71,5 +77,8 @@ class RELIABILITY(str, Enum):
         if isinstance(val, int):
             return RELIABILITY(val)
         if isinstance(val, str):
-            return RELIABILITY[val]
+            if val == "R":
+                return RELIABILITY.RELIABLE
+            if val == "B":
+                return RELIABILITY.BEST_EFFORT
         raise TypeError

@@ -17,7 +17,7 @@ import os
 import time
 import yaml
 
-from .logs import getExperiments
+from .logs import getExperimentConfigs
 from .utils import cliColors, create_dir, generate_shmem_file, ExperimentConfig, PerfArgParser
 from .transport import TRANSPORT
 
@@ -65,7 +65,7 @@ def run_experiments(files: "list[str]", perf_test_exe_cmd, output_dir, overwrite
         with open(run_file, "r") as f:
             run_cfg = yaml.load(f, Loader=yaml.FullLoader)
 
-        run_configs = getExperiments(run_cfg["experiments"])
+        run_configs = getExperimentConfigs(run_cfg["experiments"])
 
         for run_config in run_configs:
             run_experiment(run_config, perf_test_exe_cmd, output_dir, overwrite)

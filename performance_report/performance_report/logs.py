@@ -16,9 +16,11 @@ import itertools
 import json
 import pandas as pd
 import os
+import glob
+import re
 
 
-from .utils import ExperimentConfig, DatasetConfig, ThemeConfig
+from .utils import ExperimentConfig, DatasetConfig, ExperimentFilterConfig, ThemeConfig
 
 
 def parseLog(log_dir: str, experiment: ExperimentConfig):
@@ -48,12 +50,12 @@ def parseLog(log_dir: str, experiment: ExperimentConfig):
     return header, dataframe
 
 
-def getExperiments(yaml_experiments: list) -> 'list[ExperimentConfig]':
+def getExperimentConfigs(yaml_experiments: list, config_type = ExperimentConfig) -> 'list[config_type]':
     experiments = []
     for experiment in yaml_experiments:
         config_matrix = coerce_dict_vals_to_lists(experiment)
         config_combos = config_cartesian_product(config_matrix)
-        experiment_configs = [ExperimentConfig(**args) for args in config_combos]
+        experiment_configs = [config_type(**args) for args in config_combos]
         for config in experiment_configs:
             if config not in experiments:
                 experiments.append(config)
@@ -84,14 +86,19 @@ def config_cartesian_product(d: dict) -> list:
 def getDatasets(yaml_datasets: dict, log_dir) -> dict:
     datasets = {}
     for dataset_id, dataset_details in yaml_datasets.items():
-        experiments = getExperiments(dataset_details['experiments'])
-        exp_dfs = []
+        experiment_filter_configs = getExperimentConfigs(dataset_details['experiments'], config_type=ExperimentFilterConfig)
         dataframes = []
         headers = []
-        for experiment in experiments:
-            header, dataframe = parseLog(log_dir, experiment)
-            headers.append(header)
-            dataframes.append(dataframe)
+        experiments = []
+        for experiment_filter in experiment_filter_configs:
+            log_files = filter(experiment_filter.file_regex().match, os.listdir(log_dir))
+            for log_file in log_files:
+                log_file_name = os.path.split(log_file)[-1]
+                experiment = ExperimentConfig.from_log_file(log_file_name)
+                experiments.append(experiment)
+                header, dataframe = parseLog(log_dir, experiment)
+                headers.append(header)
+                dataframes.append(dataframe)
         # concate all dfs to one single one
         results_df = pd.concat(dataframes, ignore_index=True)
         config_matrix = coerce_dict_vals_to_lists(dataset_details)

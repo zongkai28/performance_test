@@ -29,6 +29,7 @@ datasets:
       color: '#652342'
     experiments:
       - msg: Array16k
+        transport: INTRA
 plots:
   - name: compare_apexos_transport
     title: Comparing different Apex.OS Transports

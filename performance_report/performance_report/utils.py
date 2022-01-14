@@ -16,11 +16,13 @@ import os
 import sys
 import pandas as pd
 import yaml
+import re
 
 from .qos import DURABILITY, HISTORY, RELIABILITY
 from .transport import TRANSPORT
 
 
+# Describes a single experiment to be run
 class ExperimentConfig:
     def __init__(
         self,
@@ -49,10 +51,10 @@ class ExperimentConfig:
         self.durability = DURABILITY.coerce(durability)
         self.history = HISTORY.coerce(history)
         self.history_depth = int(history_depth)
-        self.rt_prio = rt_prio
-        self.rt_cpus = rt_cpus
-        self.max_runtime = max_runtime
-        self.ignore_seconds = ignore_seconds
+        self.rt_prio = int(rt_prio)
+        self.rt_cpus = int(rt_cpus)
+        self.max_runtime = int(max_runtime)
+        self.ignore_seconds = int(ignore_seconds)
 
     def __eq__(self, o: object) -> bool:
         same = True
@@ -73,6 +75,7 @@ class ExperimentConfig:
         return same
 
     def log_file_name(self) -> str:
+        # Keep this in sync with ExperimentFilterConfig
         params = [
             self.com_mean,
             self.transport,
@@ -90,6 +93,10 @@ class ExperimentConfig:
         str_params = map(str, params)
         return "_".join(str_params) + ".json"
     
+    def from_log_file(filename):
+        params = filename.strip('.json').split('_')
+        return ExperimentConfig(*params)
+
     def as_dataframe(self) -> pd.DataFrame:
         return pd.DataFrame({
             'com_mean': self.com_mean,
@@ -165,6 +172,62 @@ class ExperimentConfig:
                 args_sub += " --zero-copy"
                 args_pub += " --zero-copy"
             return [args_sub, args_pub]
+
+
+# Describes how to select one or more completed experiments
+class ExperimentFilterConfig:
+    def __init__(
+        self,
+        com_mean: str = '.*',
+        transport: str = '.*',
+        msg: str = '.*',
+        pubs: str = '.*',
+        subs: str = '.*',
+        rate: str = '.*',
+        reliability: str = '.*',
+        durability: str = '.*',
+        history: str = '.*',
+        history_depth: str = '.*',
+        rt_prio: str = '.*',
+        rt_cpus: str = '.*',
+    ) -> None:
+        self.com_mean = self.wildcard_or_coerce(com_mean, str)
+        self.transport = self.wildcard_or_coerce(transport, TRANSPORT.coerce)
+        self.msg = self.wildcard_or_coerce(msg, str)
+        self.pubs = self.wildcard_or_coerce(pubs, int)
+        self.subs = self.wildcard_or_coerce(subs, int)
+        self.rate = self.wildcard_or_coerce(rate, int)
+        self.reliability = self.wildcard_or_coerce(reliability, RELIABILITY.coerce)
+        self.durability = self.wildcard_or_coerce(durability, DURABILITY.coerce)
+        self.history = self.wildcard_or_coerce(history, HISTORY.coerce)
+        self.history_depth = self.wildcard_or_coerce(history_depth, int)
+        self.rt_prio = self.wildcard_or_coerce(rt_prio, int)
+        self.rt_cpus = self.wildcard_or_coerce(rt_cpus, int)
+
+    def wildcard_or_coerce(self, param: str, coerce: 'function'):
+        if param == '.*':
+            return param
+        else:
+            return coerce(param)
+
+    def file_regex(self):
+        # Keep this in sync with ExperimentConfig
+        params = [
+            self.com_mean,
+            self.transport,
+            self.msg,
+            self.pubs,
+            self.subs,
+            self.rate,
+            self.reliability,
+            self.durability,
+            self.history,
+            self.history_depth,
+            self.rt_prio,
+            self.rt_cpus,
+        ]
+        str_params = map(str, params)
+        return re.compile("_".join(str_params) + ".json")
 
 
 class LineConfig:

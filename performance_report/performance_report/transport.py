@@ -37,5 +37,13 @@ class TRANSPORT(str, Enum):
         if isinstance(val, int):
             return TRANSPORT(val)
         if isinstance(val, str):
-            return TRANSPORT[val]
+            val = val.lower()
+            if val == "intra":
+                return TRANSPORT.INTRA
+            if val == "udp":
+                return TRANSPORT.UDP
+            if val == "shmem":
+                return TRANSPORT.SHMEM
+            if val == "zc":
+                return TRANSPORT.ZERO_COPY
         raise TypeError
