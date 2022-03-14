@@ -21,6 +21,7 @@
 #include <memory>
 #include <mutex>
 #include <thread>
+#include <functional>
 
 #include "../experiment_configuration/qos_abstraction.hpp"
 
@@ -52,7 +53,11 @@ public:
       if (this->m_ec.expected_num_pubs() > 0) {
         m_polling_subscription->wait_for_matched(
           this->m_ec.expected_num_pubs(),
-          this->m_ec.expected_wait_for_matched_timeout());
+          this->m_ec.expected_wait_for_matched_timeout(),
+          std::greater_equal<size_t>(),
+          0U,
+          std::greater_equal<size_t>(),
+          std::chrono::milliseconds(10 * this->m_ec.number_of_subscribers()));
       }
       m_waitset = std::make_unique<rclcpp::Waitset<>>(m_polling_subscription);
     }
