@@ -268,11 +268,11 @@ build_fastrtps:
 
 build_ros1:
   stage: build
-  image: osrf/ros:melodic-desktop
+  image: osrf/ros:noetic-desktop
   script:
-    - source /opt/ros/melodic/setup.bash
+    - source /opt/ros/noetic/setup.bash
     - apt-get update
-    - apt-get install -y python3-colcon-common-extensions
+    - apt-get install -y git python3-colcon-common-extensions
     - touch performance_test/COLCON_IGNORE  # Don't build the ROS2 package
     - rm performance_test_ros1_msgs/COLCON_IGNORE  # ROS1 packages are ignored by default
     - rm performance_test_ros1_publisher/COLCON_IGNORE  # ROS1 packages are ignored by default
