@@ -18,7 +18,7 @@ RUN apt-get update && \
 
 RUN mkdir -p iceoryx_ws/src && \
     cd $_ && \
-    git clone https://github.com/eclipse-iceoryx/iceoryx.git -b v1.0.1 --depth 1 && \
+    git clone https://github.com/eclipse-iceoryx/iceoryx.git -b v2.0.0 --depth 1 && \
     cd .. && \
     colcon build \
       --install-base /opt/iceoryx \
@@ -27,8 +27,9 @@ RUN mkdir -p iceoryx_ws/src && \
         -DIOX_MAX_SUBSCRIBERS=32
 
 RUN source /opt/iceoryx/setup.bash && \
-    git clone https://github.com/eclipse-cyclonedds/cyclonedds.git -b 0.8.1 --depth 1 && \
+    git clone https://github.com/eclipse-cyclonedds/cyclonedds.git && \
     cd cyclonedds && \
+    git checkout b3c386e328fc2015bfa5494d6840be973fce2e7e && \
     mkdir -p build && \
     cd build && \
     cmake -DCMAKE_INSTALL_PREFIX=/opt/cyclonedds -DENABLE_SHM=ON .. && \
@@ -36,8 +37,9 @@ RUN source /opt/iceoryx/setup.bash && \
     cmake --build . --target install
 
 RUN source /opt/iceoryx/setup.bash && \
-    git clone https://github.com/eclipse-cyclonedds/cyclonedds-cxx.git -b 0.8.1 --depth 1 && \
+    git clone https://github.com/eclipse-cyclonedds/cyclonedds-cxx.git && \
     cd cyclonedds-cxx && \
+    git checkout 725cc2487818268f351303e5bc3576f4fac89483 && \
     mkdir -p build && \
     cd build && \
     cmake -DCMAKE_INSTALL_PREFIX=/opt/cyclonedds-cxx \
