@@ -297,7 +297,7 @@ class PerfArgParser(argparse.ArgumentParser):
         self.print_help()
         sys.exit(2)
 
-    def exit(self, msg):
+    def exit(self):
         print('EXIT')
 
 
