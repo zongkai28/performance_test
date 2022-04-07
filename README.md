@@ -166,7 +166,7 @@ implemented:
 
 #### Eclipse Cyclone DDS
 
-- [Eclipse Cyclone DDS 0.8.0beta6](https://github.com/eclipse-cyclonedds/cyclonedds/tree/0.8.0beta6)
+- [Eclipse Cyclone DDS 0.9.0b1](https://github.com/eclipse-cyclonedds/cyclonedds/tree/0.9.0b1)
 - CMake build flag: `-DPERFORMANCE_TEST_CYCLONEDDS_ENABLED=ON`
 - Communication plugin: `-c CycloneDDS`
 - Zero copy transport (`--zero-copy`): yes
@@ -188,7 +188,7 @@ implemented:
 
 #### Eclipse Cyclone DDS C++ binding
 
-- [Eclipse Cyclone DDS C++ bindings 0.8.1](https://github.com/eclipse-cyclonedds/cyclonedds-cxx/tree/0.8.1)
+- [Eclipse Cyclone DDS C++ bindings 0.9.0b1](https://github.com/eclipse-cyclonedds/cyclonedds-cxx/tree/0.9.0b1)
 - CMake build flag: `-DPERFORMANCE_TEST_CYCLONEDDS_CXX_ENABLED=ON`
 - Communication plugin: `-c CycloneDDS-CXX`
 - Zero copy transport (`--zero-copy`): yes
