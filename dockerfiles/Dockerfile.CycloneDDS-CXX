@@ -1,4 +1,4 @@
-# docker build . -f dockerfiles/Dockerfile.cyclonedds-cxx -t performance_test_cyclone_dds_cxx
+# docker build . -f dockerfiles/Dockerfile.CycloneDDS-CXX -t performance_test_cyclone_dds_cxx
 # docker run -it --shm-size 2G performance_test_cyclone_dds_cxx bash
 # ros2 run performance_test perf_test -c CycloneDDS-CXX -p 0 -s 1 --zero-copy --reliable --keep-last --history-depth 16 --max-runtime 10 &
 # sleep 1
