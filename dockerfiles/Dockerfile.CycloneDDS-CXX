@@ -1,4 +1,4 @@
-# docker build . -f dockerfiles/Dockerfile.cyclonedds-cxx -t performance_test_cyclone_dds_cxx
+# docker build . -f dockerfiles/Dockerfile.CycloneDDS-CXX -t performance_test_cyclone_dds_cxx
 # docker run -it --shm-size 2G performance_test_cyclone_dds_cxx bash
 # /opt/performance_test/lib/performance_test/perf_test -c CycloneDDS-CXX --msg Array1k
 
@@ -9,7 +9,7 @@ SHELL ["/bin/bash", "-c"]
 RUN apt-get update && \
     apt-get install -y bison default-jdk libacl1-dev
 
-RUN git clone https://github.com/eclipse-cyclonedds/cyclonedds.git -b 0.8.1 --depth 1 && \
+RUN git clone https://github.com/eclipse-cyclonedds/cyclonedds.git -b 0.9.0b1 --depth 1 && \
     cd cyclonedds && \
     mkdir -p build && \
     cd build && \
@@ -17,7 +17,7 @@ RUN git clone https://github.com/eclipse-cyclonedds/cyclonedds.git -b 0.8.1 --de
     cmake --build . && \
     cmake --build . --target install
 
-RUN git clone https://github.com/eclipse-cyclonedds/cyclonedds-cxx.git -b 0.8.1 --depth 1 && \
+RUN git clone https://github.com/eclipse-cyclonedds/cyclonedds-cxx.git -b 0.9.0b1 --depth 1 && \
     cd cyclonedds-cxx && \
     mkdir -p build && \
     cd build && \
