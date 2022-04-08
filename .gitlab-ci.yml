@@ -51,7 +51,7 @@ build_cyclonedds:
     - source /opt/ros/foxy/setup.bash
     - apt-get update
     - rosdep update
-    - git clone https://github.com/eclipse-cyclonedds/cyclonedds.git -b 0.8.0beta6 --depth 1
+    - git clone https://github.com/eclipse-cyclonedds/cyclonedds.git -b 0.9.0b1 --depth 1
     - rosdep install --from cyclonedds --ignore-src -y --skip-key "iceoryx_utils iceoryx_posh iceoryx_binding_c"
     - rosdep install --from performance_test --ignore-src -y
     - cd cyclonedds
