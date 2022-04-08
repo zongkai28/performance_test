@@ -45,7 +45,7 @@ build_cyclonedds:
     - apt-get update
     - rosdep update --include-eol-distros
     - git clone https://github.com/eclipse-cyclonedds/cyclonedds.git -b 0.9.0b1 --depth 1
-    - rosdep install --from cyclonedds --ignore-src -y --skip-key "iceoryx_utils iceoryx_posh iceoryx_binding_c"
+    - rosdep install --from cyclonedds --ignore-src -y --skip-key "iceoryx_utils iceoryx_posh iceoryx_binding_c iceoryx_hoofs"
     - rosdep install --from performance_test --ignore-src -y
     - cd cyclonedds
     - mkdir -p build
