@@ -96,7 +96,7 @@ build_cyclonedds_cxx:
 
     - mkdir -p /iceoryx_ws/src
     - cd /iceoryx_ws/src/
-    - git clone https://github.com/eclipse-iceoryx/iceoryx.git -b v1.0.1 --depth 1
+    - git clone https://github.com/eclipse-iceoryx/iceoryx.git -b v2.0.0 --depth 1
     - rosdep install --from iceoryx --ignore-src -y
     - cd /iceoryx_ws
     - '
@@ -109,7 +109,7 @@ build_cyclonedds_cxx:
       '
     - source /opt/iceoryx/setup.bash
 
-    - git clone https://github.com/eclipse-cyclonedds/cyclonedds.git -b 0.8.1 --depth 1
+    - git clone https://github.com/eclipse-cyclonedds/cyclonedds.git -b 0.9.0b1 --depth 1
     - cd cyclonedds
     - mkdir -p build
     - cd build
@@ -117,7 +117,7 @@ build_cyclonedds_cxx:
     - cmake --build .
     - cmake --build . --target install
 
-    - git clone https://github.com/eclipse-cyclonedds/cyclonedds-cxx.git -b 0.8.1 --depth 1
+    - git clone https://github.com/eclipse-cyclonedds/cyclonedds-cxx.git -b 0.9.0b1 --depth 1
     - cd cyclonedds-cxx
     - mkdir -p build
     - cd build
